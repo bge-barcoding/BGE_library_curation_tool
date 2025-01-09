@@ -1,0 +1,227 @@
+2024-06-26T18:33:05.146Z info: Server is running on http://localhost:3000
+2024-06-26T18:33:05.157Z info: XML Data loaded successfully.
+2024-06-26T18:33:05.762Z info: Parsed XML Result:
+2024-06-26T18:33:05.767Z info: Data loaded from XML.
+2024-06-26T18:33:10.991Z info: POST /generate
+2024-06-26T18:33:12.087Z info: POST /generate
+2024-06-26T18:33:14.304Z info: POST /generate
+2024-06-26T18:33:24.587Z info: POST /generate
+2024-06-26T18:33:28.343Z info: POST /generate
+2024-06-26T18:33:31.615Z info: POST /generate
+2024-06-26T18:33:36.575Z info: POST /generate
+2024-06-26T18:33:40.887Z info: POST /generate
+2024-06-26T18:33:43.870Z info: POST /generate
+2024-06-26T18:33:48.519Z info: POST /generate
+2024-06-26T18:33:55.776Z info: POST /generate
+2024-06-26T18:35:20.016Z info: POST /submit
+2024-06-26T18:35:20.020Z info: Data written to logfile:
+2024-06-26T18:35:28.432Z info: POST /submit
+2024-06-26T18:35:28.434Z info: Data written to logfile:
+2024-06-26T18:35:32.087Z info: POST /submit
+2024-06-26T18:35:32.089Z info: Data written to logfile:
+2024-06-26T18:35:44.300Z info: Server is running on http://localhost:3000
+2024-06-26T18:35:44.310Z info: XML Data loaded successfully.
+2024-06-26T18:35:44.864Z info: Parsed XML Result:
+2024-06-26T18:35:44.868Z info: Data loaded from XML.
+2024-06-26T18:35:47.786Z info: POST /generate
+2024-06-26T18:35:54.393Z info: POST /submit
+2024-06-26T18:35:54.396Z info: Data written to logfile:
+2024-06-26T18:38:41.249Z info: Server is running on http://localhost:3000
+2024-06-26T18:38:41.260Z info: XML Data loaded successfully.
+2024-06-26T18:38:41.784Z info: Parsed XML Result:
+2024-06-26T18:38:41.788Z info: Data loaded from XML.
+2024-06-26T18:40:00.649Z info: POST /generate
+2024-06-26T18:40:06.208Z info: POST /submit
+2024-06-26T18:40:06.233Z info: Data written to logfile:
+2024-06-26T18:42:41.612Z info: POST /submit
+2024-06-26T18:42:41.613Z info: Data written to logfile:
+2024-06-27T08:01:26.054Z info: POST /generate
+2024-06-27T08:01:37.830Z info: POST /generate
+2024-06-27T08:01:39.253Z info: POST /generate
+2024-06-27T08:01:41.020Z info: GET /favicon.ico
+2024-06-27T08:01:42.156Z info: POST /generate
+2024-06-27T08:01:45.362Z info: POST /generate
+2024-06-27T08:01:46.437Z info: POST /generate
+2024-06-27T08:01:56.830Z info: Server is running on http://localhost:3000
+2024-06-27T08:01:56.842Z info: XML Data loaded successfully.
+2024-06-27T08:01:57.398Z info: Parsed XML Result:
+2024-06-27T08:01:57.404Z info: Data loaded from XML.
+2024-06-27T08:02:02.694Z info: POST /generate
+2024-06-27T08:02:15.063Z info: POST /generate
+2024-06-27T08:22:20.143Z info: POST /generate
+2024-06-27T08:23:13.974Z info: POST /submit
+2024-06-27T08:23:13.977Z info: Data written to logfile:
+2024-06-27T08:24:45.536Z info: POST /submit
+2024-06-27T08:24:45.537Z info: Data written to logfile:
+2024-06-27T08:37:56.091Z info: POST /generate
+2024-06-27T08:37:57.112Z info: POST /generate
+2024-06-27T08:54:45.127Z info: POST /generate
+2024-06-27T08:54:49.353Z info: POST /submit
+2024-06-27T08:54:49.354Z info: Data written to logfile:
+2024-06-27T08:54:56.867Z info: POST /submit
+2024-06-27T08:54:56.868Z info: Data written to logfile:
+2024-06-27T08:54:59.321Z info: POST /submit
+2024-06-27T08:54:59.322Z info: Data written to logfile:
+2024-06-27T08:55:01.409Z info: POST /submit
+2024-06-27T08:55:01.450Z info: Data written to logfile:
+2024-06-27T08:55:04.586Z info: POST /submit
+2024-06-27T08:55:04.587Z info: Data written to logfile:
+2024-06-27T08:55:07.074Z info: POST /submit
+2024-06-27T08:55:07.076Z info: Data written to logfile:
+2024-06-27T08:55:09.041Z info: POST /submit
+2024-06-27T08:55:09.042Z info: Data written to logfile:
+2024-06-27T08:55:11.009Z info: POST /submit
+2024-06-27T08:55:11.011Z info: Data written to logfile:
+2024-06-27T09:05:17.804Z info: POST /submit
+2024-06-27T09:05:17.805Z info: Data written to logfile:
+2024-06-27T09:05:20.485Z info: POST /submit
+2024-06-27T09:05:20.486Z info: Data written to logfile:
+2024-06-27T09:05:22.620Z info: POST /submit
+2024-06-27T09:05:22.621Z info: Data written to logfile:
+2024-06-27T09:05:34.205Z info: POST /submit
+2024-06-27T09:05:34.223Z info: Data written to logfile:
+2024-06-27T09:05:36.438Z info: POST /submit
+2024-06-27T09:05:36.439Z info: Data written to logfile:
+2024-06-27T09:05:38.364Z info: POST /submit
+2024-06-27T09:05:38.365Z info: Data written to logfile:
+2024-06-27T09:05:40.684Z info: POST /submit
+2024-06-27T09:05:40.685Z info: Data written to logfile:
+2024-06-27T09:05:44.220Z info: POST /submit
+2024-06-27T09:05:44.222Z info: Data written to logfile:
+2024-06-27T09:05:46.932Z info: POST /submit
+2024-06-27T09:05:46.945Z info: Data written to logfile:
+2024-06-27T09:55:42.658Z info: GET /favicon.ico
+2024-06-27T09:55:48.122Z info: POST /generate
+2024-06-27T09:55:51.031Z info: POST /generate
+2024-06-27T09:58:03.644Z info: Server is running on http://localhost:3000
+2024-06-27T09:58:03.655Z info: XML Data loaded successfully.
+2024-06-27T09:58:04.110Z info: Parsed XML Result:
+2024-06-27T09:58:04.115Z info: Data loaded from XML.
+2024-06-27T09:58:14.217Z info: POST /generate
+2024-06-27T09:58:18.957Z info: POST /generate
+2024-06-27T09:58:21.499Z info: POST /generate
+2024-06-27T09:58:23.567Z info: POST /generate
+2024-06-27T09:58:24.112Z info: POST /generate
+2024-06-27T09:58:26.456Z info: POST /generate
+2024-06-27T09:58:27.270Z info: POST /generate
+2024-06-27T09:58:27.479Z info: POST /generate
+2024-06-27T09:58:27.696Z info: POST /generate
+2024-06-27T09:58:37.300Z info: Server is running on http://localhost:3000
+2024-06-27T09:58:37.311Z info: XML Data loaded successfully.
+2024-06-27T09:58:37.857Z info: Parsed XML Result:
+2024-06-27T09:58:37.862Z info: Data loaded from XML.
+2024-06-27T09:58:45.922Z info: POST /generate
+2024-06-27T09:59:01.505Z info: POST /generate
+2024-06-27T09:59:05.464Z info: POST /generate
+2024-06-27T09:59:06.353Z info: POST /generate
+2024-06-27T09:59:09.327Z info: POST /generate
+2024-06-27T09:59:09.800Z info: POST /generate
+2024-06-27T09:59:12.990Z info: POST /generate
+2024-06-27T09:59:13.536Z info: POST /generate
+2024-06-27T09:59:13.717Z info: POST /generate
+2024-06-27T09:59:13.912Z info: POST /generate
+2024-06-27T09:59:16.337Z info: POST /generate
+2024-06-27T09:59:19.239Z info: POST /generate
+2024-06-27T09:59:23.447Z info: POST /generate
+2024-06-27T09:59:26.454Z info: POST /generate
+2024-06-27T11:38:52.349Z info: POST /generate
+2024-06-27T11:38:56.822Z info: POST /generate
+2024-06-27T11:39:02.973Z info: POST /generate
+2024-06-27T11:39:06.260Z info: POST /generate
+2024-06-27T11:39:06.928Z info: POST /generate
+2024-06-27T11:39:09.293Z info: POST /generate
+2024-06-27T11:39:12.693Z info: POST /generate
+2024-06-27T11:40:14.226Z info: Server is running on http://localhost:3000
+2024-06-27T11:40:14.236Z info: XML Data loaded successfully.
+2024-06-27T11:40:14.793Z info: Parsed XML Result:
+2024-06-27T11:40:14.797Z info: Data loaded from XML.
+2024-06-27T11:40:23.350Z info: POST /generate
+2024-06-27T11:40:24.131Z info: POST /generate
+2024-06-27T11:40:26.962Z info: POST /generate
+2024-06-27T11:45:01.675Z info: Server is running on http://localhost:3000
+2024-06-27T11:45:01.702Z info: XML Data loaded successfully.
+2024-06-27T11:45:02.958Z info: Parsed XML Result:
+2024-06-27T11:45:02.963Z error: Invalid XML structure.
+2024-06-27T11:45:16.868Z info: POST /generate
+2024-06-27T11:45:22.028Z info: POST /generate
+2024-06-27T11:45:22.579Z info: POST /generate
+2024-06-27T11:45:22.756Z info: POST /generate
+2024-06-27T11:45:22.924Z info: POST /generate
+2024-06-27T11:47:55.361Z info: Server is running on http://localhost:3000
+2024-06-27T11:47:55.383Z info: XML Data loaded successfully.
+2024-06-27T11:47:56.646Z info: Parsed XML Result:
+2024-06-27T11:47:56.651Z error: Invalid XML structure.
+2024-06-27T12:15:48.509Z info: Server is running on http://localhost:3000
+2024-06-27T12:15:48.529Z info: XML Data loaded successfully.
+2024-06-27T12:15:49.774Z info: Parsed XML Result:
+2024-06-27T12:15:49.779Z info: Data loaded from XML.
+2024-06-27T12:15:59.535Z info: POST /generate
+2024-06-27T12:16:16.673Z info: POST /generate
+2024-06-27T12:16:17.665Z info: POST /generate
+2024-06-27T12:17:16.397Z info: POST /generate
+2024-06-27T12:17:16.984Z info: POST /generate
+2024-06-27T12:18:58.953Z info: POST /generate
+2024-06-27T12:18:59.709Z info: POST /generate
+2024-06-27T12:19:00.184Z info: POST /generate
+2024-06-27T12:19:00.374Z info: POST /generate
+2024-06-27T12:19:14.266Z info: Server is running on http://localhost:3000
+2024-06-27T12:19:14.289Z info: XML Data loaded successfully.
+2024-06-27T12:19:15.558Z info: Parsed XML Result:
+2024-06-27T12:19:15.563Z info: Data loaded from XML.
+2024-06-27T12:19:21.529Z info: POST /generate
+2024-06-27T12:19:38.144Z info: POST /generate
+2024-06-27T12:19:40.911Z info: POST /generate
+2024-06-27T12:19:43.061Z info: POST /generate
+2024-06-27T12:19:45.776Z info: POST /generate
+2024-06-27T12:19:47.610Z info: POST /generate
+2024-06-27T12:19:48.392Z info: POST /generate
+2024-06-27T12:19:48.701Z info: POST /generate
+2024-06-27T12:19:51.688Z info: POST /generate
+2024-06-27T12:19:54.862Z info: POST /generate
+2024-06-27T12:19:57.504Z info: POST /generate
+2024-06-27T12:20:01.504Z info: POST /generate
+2024-06-27T12:20:08.601Z info: POST /generate
+2024-06-27T13:13:53.879Z info: POST /generate
+2024-06-27T13:13:57.551Z info: POST /generate
+2024-06-27T13:13:58.264Z info: POST /generate
+2024-06-27T13:13:58.847Z info: POST /generate
+2024-06-27T13:13:59.329Z info: POST /generate
+2024-06-27T13:14:40.720Z info: POST /generate
+2024-06-27T13:14:47.490Z info: POST /generate
+2024-06-27T13:14:53.614Z info: POST /generate
+2024-06-27T13:18:11.482Z info: GET /ressources/IBOL_LOGO_TRANSPARENT.png
+2024-06-27T13:18:14.803Z info: GET /ressources/IBOL_LOGO_TRANSPARENT.png
+2024-06-27T13:18:52.521Z info: GET /ressources/IBOL_LOGO_TRANSPARENT.png
+2024-06-27T13:18:53.188Z info: GET /ressources/IBOL_LOGO_TRANSPARENT.png
+2024-06-27T13:18:53.638Z info: GET /ressources/IBOL_LOGO_TRANSPARENT.png
+2024-06-27T13:18:54.188Z info: GET /ressources/IBOL_LOGO_TRANSPARENT.png
+2024-06-27T13:18:55.019Z info: GET /ressources/IBOL_LOGO_TRANSPARENT.png
+2024-06-27T13:18:55.687Z info: GET /ressources/IBOL_LOGO_TRANSPARENT.png
+2024-06-27T13:19:05.500Z info: GET /ressources/IBOL_LOGO_TRANSPARENT.png
+2024-06-27T13:19:06.478Z info: GET /ressources/IBOL_LOGO_TRANSPARENT.png
+2024-06-27T13:19:14.333Z info: GET /IBOL_LOGO_TRANSPARENT.png
+2024-06-27T13:20:13.105Z info: GET /ressources/IBOL_LOGO_TRANSPARENT.png
+2024-06-27T13:20:13.903Z info: GET /ressources/IBOL_LOGO_TRANSPARENT.png
+2024-06-27T13:20:48.708Z info: Server is running on http://localhost:3000
+2024-06-27T13:20:48.727Z info: XML Data loaded successfully.
+2024-06-27T13:20:50.083Z info: Parsed XML Result:
+2024-06-27T13:20:50.087Z info: Data loaded from XML.
+2024-06-27T13:20:50.422Z info: GET /ressources/IBOL_LOGO_TRANSPARENT.png
+2024-06-27T13:20:53.594Z info: GET /ressources/IBOL_LOGO_TRANSPARENT.png
+2024-06-27T13:20:56.128Z info: GET /ressources/IBOL_LOGO_TRANSPARENT.png
+2024-06-27T13:20:59.392Z info: GET /ressources/IBOL_LOGO_TRANSPARENT.png
+2024-06-27T13:24:09.439Z info: POST /generate
+2024-06-27T13:24:13.471Z info: POST /generate
+2024-06-27T13:24:20.487Z info: POST /submit
+2024-06-27T13:24:20.489Z info: Data written to logfile:
+2024-06-27T13:26:56.715Z info: Server is running on http://localhost:3000
+2024-06-27T13:26:56.738Z info: XML Data loaded successfully.
+2024-06-27T13:26:58.003Z info: Parsed XML Result:
+2024-06-27T13:26:58.009Z info: Data loaded from XML.
+2024-06-27T13:29:24.759Z info: POST /generate
+2024-06-27T13:29:51.551Z info: POST /submit
+2024-06-27T13:29:51.566Z info: Data written to logfile:
+2024-06-27T13:29:54.148Z info: POST /submit
+2024-06-27T13:29:54.149Z info: Data written to logfile:
+2024-06-27T13:29:57.055Z info: POST /submit
+2024-06-27T13:29:57.056Z info: Data written to logfile:
