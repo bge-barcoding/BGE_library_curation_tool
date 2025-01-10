@@ -47,6 +47,26 @@ function writeToLog(processId, action, oldValues, newValues) {
 }
 // Initialize SQLite database and load data from XML
 function initDatabaseAndLoadData() {
+    if (fs.existsSync('data.db')) {
+        console.log('Database file already exists. Skipping initialization.');
+        db = new sqlite3.Database(dbFile, (err) => {
+            if (err) {
+                console.error('Error connecting to existing database:', err.message);
+            } else {
+                console.log('Successfully connected to the existing database.');
+                populateAvailableColumns(); // Load column names
+                // Test the connection by querying a table
+                db.all("SELECT name FROM sqlite_master WHERE type='table';", (err, rows) => {
+                    if (err) {
+                        console.error('Error querying database tables:', err.message);
+                    } else {
+                        console.log('Tables in the database:', rows);
+                    }
+                });
+            }
+        });
+        return;
+    }
     db = new sqlite3.Database(dbFile);
 
     // Create table if it does not exist
@@ -213,42 +233,82 @@ function initDatabaseAndLoadData() {
         });
     });
 }
+
+function populateAvailableColumns() {
+    db.all("PRAGMA table_info(records);", (err, rows) => {
+        if (err) {
+            console.error("Error fetching column info:", err.message);
+        } else {
+            availableColumns = rows.map(row => row.name); // Extract column names
+            console.log("Available columns:", availableColumns);
+        }
+    });
+}
+
 // Initialize database and load data on server start
 initDatabaseAndLoadData();
 // API endpoints
+app.get('/records', (req, res) => {
+    db.all('SELECT * FROM records', (err, rows) => {
+        if (err) {
+            console.error('Error fetching records:', err.message);
+            res.status(500).send('Error fetching records');
+        } else {
+            res.json(rows);
+        }
+    });
+});
+
 app.get('/columns', (req, res) => {
     res.json({ availableColumns });
 });
 app.post('/generate', (req, res) => {
     const { searchTerm, searchType, searchTerm2, searchType2, columns } = req.body;
+
     if (!columns || !Array.isArray(columns)) {
         return res.status(400).json({ success: false, message: 'Invalid columns data' });
     }
-    // SQL query
+
+    // SQL query base
     let sqlQuery = 'SELECT * FROM records';
     const params = [];
     const conditions = [];
-    // first query condition
+
+    // Add first query condition
     if (searchTerm && searchType && columns.includes(searchType)) {
         conditions.push(`${searchType} LIKE ?`);
         params.push(`%${searchTerm}%`);
     }
-    // second query condition
+
+    // Add second query condition
     if (searchTerm2 && searchType2 && columns.includes(searchType2)) {
         conditions.push(`${searchType2} LIKE ?`);
         params.push(`%${searchTerm2}%`);
     }
-    // add conditions to the query
+
+    // Exclude rows with specific statuses (case-insensitive)
+    conditions.push(`(LOWER(status) NOT IN ('invalid', 'not in europe') OR status IS NULL)`);
+
+    // Combine all conditions
     if (conditions.length > 0) {
         sqlQuery += ` WHERE ${conditions.join(' AND ')}`;
     }
+
+    // Log the query for debugging
+    console.log('SQL Query:', sqlQuery);
+    console.log('Params:', params);
+
+    // Execute the SQL query
     db.all(sqlQuery, params, (err, rows) => {
         if (err) {
             console.error('Error fetching records from database:', err);
             return res.status(500).json({ success: false, message: 'Error fetching records from database' });
         }
-        // create HTML table
+
+        // Generate HTML table headers
         const tableHeaders = columns.map(column => `<th>${column}</th>`).join('');
+
+        // Generate HTML table rows
         const tableRows = rows.map((item, index) => {
             const row = columns.map(column => {
                 return `<td id="${column.toLowerCase()}-${index}">${item[column.toLowerCase()] || ''}</td>`;
@@ -256,10 +316,10 @@ app.post('/generate', (req, res) => {
             return `
                 <tr>
                     ${row}
-                    <td id="processid-${index}">${item.processid}</td>
+                    <td id="processid-${index}">${item.processid || ''}</td>
                     <td>
                         <select id="status-${index}">
-                            <option value="" ${item.additionalStatus === '' ? 'selected' : ''}></option>
+                            <option value="" ${!item.status ? 'selected' : ''}></option>
                             <option value="valid" ${item.status === 'valid' ? 'selected' : ''}>Valid</option>
                             <option value="invalid" ${item.status === 'invalid' ? 'selected' : ''}>Invalid</option>
                             <option value="not in europe" ${item.status === 'not in europe' ? 'selected' : ''}>Not in Europe</option>
@@ -267,17 +327,19 @@ app.post('/generate', (req, res) => {
                     </td>
                     <td>
                         <select id="additionalStatus-${index}">
-                            <option value="" ${item.additionalStatus === '' ? 'selected' : ''}></option>
+                            <option value="" ${!item.additionalStatus ? 'selected' : ''}></option>
                             <option value="misidentified" ${item.additionalStatus === 'misidentified' ? 'selected' : ''}>misidentified</option>
                             <option value="synonym" ${item.additionalStatus === 'synonym' ? 'selected' : ''}>Synonym</option>
-                            <option value="not in europe" ${item.additionalStatus === 'typo' ? 'selected' : ''}>typo</option>
+                            <option value="typo" ${item.additionalStatus === 'typo' ? 'selected' : ''}>typo</option>
                         </select>
                     </td>
                     <td><input type="text" id="ranking-${index}" value="${item.ranking || ''}"></td>
                     <td><input type="text" id="species-${index}" value="${item.species || ''}"></td>
-                    <td><button onclick="submitRow(event, ${index}, '${item.processid}')">Submit</button></td>
+                    <td><button onclick="submitRow(event, ${index}, '${item.processid || ''}')">Submit</button></td>
                 </tr>`;
         }).join('');
+
+        // Final table
         const table = `
             <table id="dataTable">
                 <thead>
@@ -287,7 +349,7 @@ app.post('/generate', (req, res) => {
                         <th>Status</th>
                         <th>Reason name correction</th>
                         <th>Ranking</th>
-                        <th>correct species name</th>
+                        <th>Correct species name</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -295,6 +357,7 @@ app.post('/generate', (req, res) => {
                     ${tableRows}
                 </tbody>
             </table>`;
+
         res.json({ success: true, table });
     });
 });
@@ -357,7 +420,7 @@ app.post('/submit', (req, res) => {
             changes.oldValues.species = currentSpecies;
             changes.newValues.species = updatedSpecies;
             // Check if additionalStatus is 'synonym'
-            if (additionalStatus === 'synonym') {
+            if (additionalStatus === 'synonym' || 'misidentified' || 'typo' || '') {
                 // SQL to select all records that have the same current species
                 const sqlSelectAll = `SELECT processid FROM records WHERE species = ?`;
                 console.log('species')
@@ -429,16 +492,16 @@ app.post('/search', (req, res) => {
                     <td id="processid-${index}">${item.processid}</td>
                     <td>
                         <select id="status-${index}">
-                            <option value="valide" ${item.status === 'valide' ? 'selected' : ''}>Valid</option>
-                            <option value="invalid" ${item.status === 'invalid' ? 'selected' : ''}>Synonym</option>
+                            <option value="valid" ${item.status === 'valid' ? 'selected' : ''}>Valid</option>
+                            <option value="invalid" ${item.status === 'invalid' ? 'selected' : ''}>Invalid</option>
                             <option value="not in europe" ${item.status === 'not in europe' ? 'selected' : ''}>Not in Europe</option>
                         </select>
                     </td>
                     <td>
                         <select id="additionalStatus-${index}">
-                            <option value="valide" ${item.additionalStatus === 'valide' ? 'selected' : ''}>Valid</option>
+                            <option value="misidentified" ${item.additionalStatus === 'misidentified' ? 'selected' : ''}>misidentified</option>
                             <option value="synonym" ${item.additionalStatus === 'synonym' ? 'selected' : ''}>Synonym</option>
-                            <option value="not in europe" ${item.additionalStatus === 'not in europe' ? 'selected' : ''}>Not in Europe</option>
+                            <option value="typo" ${item.additionalStatus === 'typo' ? 'selected' : ''}>typo</option>
                         </select>
                     </td>
                     <td><input type="text" id="ranking-${index}" value="${item.ranking || ''}"></td>
@@ -467,28 +530,36 @@ app.post('/search', (req, res) => {
 });
 app.post('/distinct-values', (req, res) => {
     const { column, searchTerm, searchType, searchTerm2, searchType2 } = req.body;
-    let sqlQuery = `SELECT COUNT(DISTINCT ${column}) AS count FROM records`;
-    let params = [];
-    // add first condition
-    if (searchType && searchTerm) {
-        sqlQuery += ` WHERE ${searchType} LIKE ?`;
+
+    let sqlQuery = `SELECT COUNT(DISTINCT ${column}) AS distinctCount FROM records`;
+    const params = [];
+    const conditions = [];
+
+    // Add search filters
+    if (searchTerm && searchType) {
+        conditions.push(`${searchType} LIKE ?`);
         params.push(`%${searchTerm}%`);
     }
-    // add second condition if available
-    if (searchType2 && searchTerm2) {
-        if (params.length > 0) {
-            sqlQuery += ` AND ${searchType2} LIKE ?`;
-        } else {
-            sqlQuery += ` WHERE ${searchType2} LIKE ?`;
-        }
+
+    if (searchTerm2 && searchType2) {
+        conditions.push(`${searchType2} LIKE ?`);
         params.push(`%${searchTerm2}%`);
     }
+
+    // Exclude rows with specific statuses
+    conditions.push(`(LOWER(status) NOT IN ('invalid', 'not in europe') OR status IS NULL)`);
+
+    if (conditions.length > 0) {
+        sqlQuery += ` WHERE ${conditions.join(' AND ')}`;
+    }
+
+    // Execute the query
     db.get(sqlQuery, params, (err, row) => {
         if (err) {
-            console.error('Error fetching distinct values:', err);
-            return res.status(500).json({ success: false, message: 'Error fetching distinct values' });
+            console.error('Error fetching distinct BIN count:', err);
+            return res.status(500).json({ success: false, message: 'Error fetching distinct BIN count' });
         }
-        res.json({ success: true, count: row.count });
+        res.json({ success: true, count: row.distinctCount });
     });
 });
 app.get('/distinct-values', (req, res) => {

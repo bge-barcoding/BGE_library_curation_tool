@@ -155,33 +155,63 @@
         let changes = [];
         let statusSelections = {}; 
     document.addEventListener('DOMContentLoaded', async () => {
-        try {
-            const response = await fetch('/columns');
-            const data = await response.json();
-            const checkboxGroup = document.getElementById('checkboxGroup');
-            const columns = data.availableColumns.filter(col => col !== 'status' && col.toLowerCase() !== 'species');
+        function updateSearchTypeOptions() {
+        const checkboxes = document.querySelectorAll('input[name="columns"]:checked');
+        const selectedColumns = Array.from(checkboxes).map(cb => cb.value);
 
-            columns.forEach(column => {
-                const isChecked = column === 'bin_uri' || column === 'identification' || column.toLowerCase() === 'status' ? 'checked' : '';
-                checkboxGroup.innerHTML += `
-                    <input type="checkbox" id="column${column}" name="columns" value="${column}" ${isChecked}>
-                    <label for="column${column}">${column}</label>
-                `;
-            });
-            // Event Listener for searchType
-            const searchTypeElement = document.getElementById('searchType');
-            searchTypeElement.addEventListener('change', () => handleSearchTypeChange('searchType'));
+        const searchTypeDropdown = document.getElementById('searchType');
+        const searchType2Dropdown = document.getElementById('searchType2');
 
-            // Event Listener for searchType2
-            const searchType2Element = document.getElementById('searchType2');
-            searchType2Element.addEventListener('change', () => handleSearchTypeChange('searchType2'));
+        // Clear existing options
+        searchTypeDropdown.innerHTML = '<option value=""></option>';
+        searchType2Dropdown.innerHTML = '<option value=""></option>';
 
-        } catch (error) {
-            console.error('Error loading columns:', error);
-        }
-        colorizeTableCells();
-        colorizeStatusCells();
-    });
+        // Populate new options
+        selectedColumns.forEach(column => {
+            const option = `<option value="${column}">${column}</option>`;
+            searchTypeDropdown.innerHTML += option;
+            searchType2Dropdown.innerHTML += option;
+        });
+
+        console.log('Updated dropdown options:', selectedColumns); // Debugging purposes
+    }
+
+    try {
+        const response = await fetch('/columns');
+        const data = await response.json();
+        const checkboxGroup = document.getElementById('checkboxGroup');
+        const columns = data.availableColumns.filter(col => col !== 'status' && col.toLowerCase() !== 'species');
+
+        columns.forEach(column => {
+            const isChecked = column === 'bin_uri' || column === 'identification' || column.toLowerCase() === 'status' ? 'checked' : '';
+            checkboxGroup.innerHTML += `
+                <input type="checkbox" id="column${column}" name="columns" value="${column}" ${isChecked}>
+                <label for="column${column}">${column}</label>
+            `;
+        });
+
+        // Synchronize dropdowns after checkbox initialization
+        updateSearchTypeOptions();
+
+        // Event Listener for searchType
+        const searchTypeElement = document.getElementById('searchType');
+        searchTypeElement.addEventListener('change', () => handleSearchTypeChange('searchType'));
+
+        // Event Listener for searchType2
+        const searchType2Element = document.getElementById('searchType2');
+        searchType2Element.addEventListener('change', () => handleSearchTypeChange('searchType2'));
+
+        // Add change listener to checkboxes for dynamic updates
+        document.getElementById('checkboxGroup').addEventListener('change', () => {
+            updateSearchTypeOptions();
+        });
+
+    } catch (error) {
+        console.error('Error loading columns:', error);
+    }
+    colorizeTableCells();
+    colorizeStatusCells();
+});
     function handleSearchTypeChange(searchTypeId) {
         const searchTypeElement = document.getElementById(searchTypeId);
         const selectedColumn = searchTypeElement.value;
