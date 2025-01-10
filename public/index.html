@@ -180,7 +180,8 @@
         const response = await fetch('/columns');
         const data = await response.json();
         const checkboxGroup = document.getElementById('checkboxGroup');
-        const columns = data.availableColumns.filter(col => col !== 'status' && col.toLowerCase() !== 'species');
+        //const columns = data.availableColumns.filter(col => col !== 'status' && col.toLowerCase() !== 'species');
+        const columns = ['keep', 'ranking', 'BAGS', 'processid', 'sampleid', 'bin_uri', 'phylum', 'class', 'order', 'family', 'subfamily', 'genus', 'subspecies', 'species_reference', 'identification', 'identifcation_method', 'itentified_by', 'taxonomy_notes', 'sex', 'life_stages', 'notes', 'voucher_type', 'collectors', 'collection_date', 'collection_type', 'collection_notes', 'geoid', 'country_ocean', 'province', 'region', 'sector', 'site', 'site_code', 'coord', 'coord_source', 'elev', 'depth', 'nuc', 'nuc_basecount', 'recordset_code_arr', 'gb_acs', 'additionalStatus'];
 
         columns.forEach(column => {
             const isChecked = column === 'bin_uri' || column === 'identification' || column.toLowerCase() === 'status' ? 'checked' : '';
