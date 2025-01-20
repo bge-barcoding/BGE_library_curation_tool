@@ -181,7 +181,7 @@
         const data = await response.json();
         const checkboxGroup = document.getElementById('checkboxGroup');
         //const columns = data.availableColumns.filter(col => col !== 'status' && col.toLowerCase() !== 'species');
-        const columns = ['keep', 'ranking', 'BAGS', 'processid', 'sampleid', 'bin_uri', 'phylum', 'class', 'order', 'family', 'subfamily', 'genus', 'subspecies', 'species_reference', 'identification', 'identifcation_method', 'itentified_by', 'taxonomy_notes', 'sex', 'life_stages', 'notes', 'voucher_type', 'collectors', 'collection_date', 'collection_type', 'collection_notes', 'geoid', 'country_ocean', 'province', 'region', 'sector', 'site', 'site_code', 'coord', 'coord_source', 'elev', 'depth', 'nuc', 'nuc_basecount', 'recordset_code_arr', 'gb_acs', 'additionalStatus'];
+        const columns = ['ranking', 'BAGS', 'processid', 'sampleid', 'bin_uri', 'phylum', 'class', 'order', 'family', 'subfamily', 'genus', 'subspecies', 'species_reference', 'identification', 'identifcation_method', 'itentified_by', 'taxonomy_notes', 'sex', 'life_stages', 'notes', 'voucher_type', 'collectors', 'collection_date', 'collection_type', 'collection_notes', 'geoid', 'country_ocean', 'province', 'region', 'sector', 'site', 'site_code', 'coord', 'coord_source', 'elev', 'depth', 'nuc', 'nuc_basecount', 'recordset_code_arr', 'gb_acs', 'additionalStatus'];
 
         columns.forEach(column => {
             const isChecked = column === 'bin_uri' || column === 'identification' || column.toLowerCase() === 'status' ? 'checked' : '';
@@ -286,15 +286,17 @@ function colorizeBinUriCells() {
                     return (selectVal || '').toLowerCase(); 
                 });
             };
+            const keepIndex = getColumnIndexByName('#dataTable', 'keep');
             const speciesIndex = getColumnIndexByName('#dataTable', 'Species');
             const statusIndex = getColumnIndexByName('#dataTable', 'Status');
             const rankingIndex = getColumnIndexByName('#dataTable', 'Ranking');
             const additionalStatusIndex = getColumnIndexByName('#dataTable', 'Additional Status');
-
+            const curator_notesIndex = getColumnIndexByName('#dataTable', 'Curator Notes');
+            
             $('#dataTable').DataTable({
                 "columnDefs": [
-                    { "orderDataType": "dom-select", "targets": [statusIndex, additionalStatusIndex] },   // Dropdown-menue
-                    { "orderDataType": "dom-text", "targets": [speciesIndex, rankingIndex] },  
+                    { "orderDataType": "dom-select", "targets": [keepIndex, statusIndex, additionalStatusIndex] },   // Dropdown-menue
+                    { "orderDataType": "dom-text", "targets": [speciesIndex, rankingIndex, curator_notesIndex] },  
                 ],
                 "drawCallback": function(settings) {
                     colorizeTableCells(); // colorize cells
@@ -451,18 +453,20 @@ async function updateDistinctValues(column, searchTerm, searchType, searchTerm2,
         async function submitRow(event, index, processId) {
             event.preventDefault();
 
+            const keep = document.getElementById(`keep-${index}`).value;
             const status = document.getElementById(`status-${index}`).value;
             const additionalStatus = document.getElementById(`additionalStatus-${index}`).value;
             const ranking = document.getElementById(`ranking-${index}`).value;
             const species = document.getElementById(`species-${index}`).value;
-
+            const curator_notes = document.getElementById(`curator_notes-${index}`).value;
+            
             try {
                 const response = await fetch('/submit', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ processId, status, additionalStatus, ranking, species })
+                    body: JSON.stringify({ keep, processId, status, additionalStatus, ranking, species, curator_notes })
                 });
 
                 if (!response.ok) {

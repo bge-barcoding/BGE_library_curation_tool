@@ -164,7 +164,8 @@ function initDatabaseAndLoadData() {
         INSTITUTION TEXT,
         PUBLIC_VOUCHER TEXT,
         MUSEUM_ID TEXT,
-        additionalStatus TEXT
+        additionalStatus TEXT,
+        curator_notes TEXT
     )`, (err) => {
         if (err) {
             console.error('Error creating table:', err);
@@ -197,8 +198,8 @@ function initDatabaseAndLoadData() {
                         depth, depth_accuracy, habitat, sampling_protocol, nuc, nuc_basecount, insdc_acs, funding_src, marker_code,
                         primers_forward, primers_reverse, sequence_run_site, sequence_upload_date, recordset_code_arr, extrainfo, country,
                         collection_note, associated_specimen, gb_acs, nucraw, SPECIES_ID, TYPE_SPECIMEN, SEQ_QUALITY, HAS_IMAGE, COLLECTORS,
-                        IDENTIFIER, ID_METHOD, INSTITUTION, PUBLIC_VOUCHER, MUSEUM_ID
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
+                        IDENTIFIER, ID_METHOD, INSTITUTION, PUBLIC_VOUCHER, MUSEUM_ID, curator_notes
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
                     
                     data.forEach(record => {
                         stmt.run(
@@ -218,7 +219,7 @@ function initDatabaseAndLoadData() {
                             record.sequence_run_site, record.sequence_upload_date, record.recordset_code_arr, record.extrainfo, record.country,
                             record.collection_note, record.associated_specimen, record.gb_acs, record.nucraw, record.SPECIES_ID, record.TYPE_SPECIMEN,
                             record.SEQ_QUALITY, record.HAS_IMAGE, record.COLLECTORS, record.IDENTIFIER, record.ID_METHOD, record.INSTITUTION,
-                            record.PUBLIC_VOUCHER, record.MUSEUM_ID
+                            record.PUBLIC_VOUCHER, record.MUSEUM_ID, record.curator_notes
                         );
                     });
                     stmt.finalize();
@@ -316,6 +317,13 @@ app.post('/generate', (req, res) => {
             return `
                 <tr>
                     ${row}
+                    <td>
+                        <select id="keep-${index}">
+                            <option value="" ${!item.keep ? 'selected' : ''}></option>
+                            <option value="hold" ${item.keep === 'hold' ? 'selected' : ''}>hold</option>
+                            <option value="reject" ${item.keep === 'reject' ? 'selected' : ''}>reject</option>
+                        </select>
+                    </td>
                     <td id="processid-${index}">${item.processid || ''}</td>
                     <td>
                         <select id="status-${index}">
@@ -335,6 +343,7 @@ app.post('/generate', (req, res) => {
                     </td>
                     <td><input type="text" id="ranking-${index}" value="${item.ranking || ''}"></td>
                     <td><input type="text" id="species-${index}" value="${item.species || ''}"></td>
+                    <td><input type="text" id="curator_notes-${index}" value="${item.curator_notes || ''}"></td>
                     <td><button onclick="submitRow(event, ${index}, '${item.processid || ''}')">Submit</button></td>
                 </tr>`;
         }).join('');
@@ -345,11 +354,13 @@ app.post('/generate', (req, res) => {
                 <thead>
                     <tr>
                         ${tableHeaders}
+                        <th>Keep</th>
                         <th>Process ID</th>
                         <th>Status</th>
                         <th>Reason name correction</th>
                         <th>Ranking</th>
                         <th>Correct species name</th>
+                        <th>Curator_notes</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -362,18 +373,20 @@ app.post('/generate', (req, res) => {
     });
 });
 app.post('/submit', (req, res) => {
-    const { processId, status, additionalStatus, ranking, species } = req.body;
+    const { keep, processId, status, additionalStatus, ranking, species, curator_notes } = req.body;
     // SQL command to get the current values
-    const sqlSelect = `SELECT species, status, additionalStatus, ranking FROM records WHERE processid = ?`;
+    const sqlSelect = `SELECT keep, species, status, additionalStatus, ranking, curator_notes FROM records WHERE processid = ?`;
     db.get(sqlSelect, [processId], (selectErr, oldData) => {
         if (selectErr) {
             console.error('Error fetching current data from database:', selectErr);
             return res.status(500).json({ success: false, message: 'Error fetching current data from database' });
         }
+        const currentKeep = oldData.keep || '';
         const currentSpecies = oldData.species || '';
         const currentStatus = oldData.status || '';
         const currentAdditionalStatus = oldData.additionalStatus || '';
         const currentRanking = oldData.ranking || '';
+        const currentCurator_notes = oldData.curator_notes || '';
         console.log('oldData.additionalStatus');
         let changes = {
             oldValues: {},
@@ -382,6 +395,10 @@ app.post('/submit', (req, res) => {
         // Function to update status, additionalStatus, and ranking
         function updateOtherFields() {
             // Check for changes in other fields and log them
+            if (keep !== currentKeep) {
+                changes.oldValues.keep = currentKeep;
+                changes.newValues.keep = keep;
+            }
             if (status !== currentStatus) {
                 changes.oldValues.status = currentStatus;
                 changes.newValues.status = status;
@@ -394,13 +411,19 @@ app.post('/submit', (req, res) => {
                 changes.oldValues.ranking = currentRanking;
                 changes.newValues.ranking = ranking;
             }
+            if (curator_notes !== currentCurator_notes) {
+                changes.oldValues.curator_notes = currentCurator_notes;
+                changes.newValues.curator_notes = curator_notes;
+            }
             // SQL to update the rest of the fields for the specific processId
             const sqlUpdate = `UPDATE records
-                               SET status = ?,
+                               SET keep = ?,
+                                   status = ?,
                                    additionalStatus = ?,
-                                   ranking = ?
+                                   ranking = ?,
+                                   curator_notes = ?
                                WHERE processid = ?`;
-            db.run(sqlUpdate, [status, additionalStatus, ranking, processId], function(err) {
+            db.run(sqlUpdate, [keep, status, additionalStatus, ranking, curator_notes, processId], function(err) {
                 if (err) {
                     console.error('Error updating record in database:', err);
                     return res.status(500).json({ success: false, message: 'Error updating record in database' });
@@ -489,6 +512,12 @@ app.post('/search', (req, res) => {
             return `
                 <tr>
                     ${row}
+                    <td>
+                        <select id="keep-${index}">
+                            <option value="hold" ${item.keep === 'hold' ? 'selected' : ''}>hold</option>
+                            <option value="reject" ${item.keep === 'reject' ? 'selected' : ''}>reject</option>
+                        </select>
+                    </td>
                     <td id="processid-${index}">${item.processid}</td>
                     <td>
                         <select id="status-${index}">
@@ -506,6 +535,7 @@ app.post('/search', (req, res) => {
                     </td>
                     <td><input type="text" id="ranking-${index}" value="${item.ranking || ''}"></td>
                     <td><input type="text" id="species-${index}" value="${item.species || ''}"></td>
+                    <td><input type="text" id="curator_notes-${index}" value="${item.curator_notes || ''}"></td>
                     <td><button onclick="submitRow(event, ${index}, '${item.processid}')">Submit</button></td>
                 </tr>`;
         }).join('');
@@ -514,10 +544,12 @@ app.post('/search', (req, res) => {
                 <thead>
                         <tr>
                         ${tableHeaders}
+                        <th>Keep</th>
                         <th>Process ID</th>
                         <th>Status</th>
                         <th>Reason</th>
                         <th>Ranking</th>
+                        <th>Curator_notes</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
