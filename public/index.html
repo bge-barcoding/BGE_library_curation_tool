@@ -19,7 +19,7 @@
             margin-bottom: 10px;
         }
         input[type="text"], select {
-            width: 200px;
+            width: 130px;
             padding: 8px;
             font-size: 16px;
         }
@@ -91,6 +91,10 @@
         .synonym-status {
             background-color: #f8d7da;
             color: #721c24;
+        }
+        .processed {
+            background-color: #d1e7dd; /* Light green for processed rows */
+            color: #0f5132; /* Darker green text for better contrast */
         }      
     </style>
 </head>
@@ -473,15 +477,25 @@ async function updateDistinctValues(column, searchTerm, searchType, searchTerm2,
                     throw new Error('Failed to submit row');
                 }
 
+                // Show success message
                 document.getElementById('successMessage').innerText = 'Submit successful';
                 document.getElementById('successMessage').style.display = 'block';
                 setTimeout(() => {
                     document.getElementById('successMessage').style.display = 'none';
                 }, 3000);
 
+                // Apply the "processed" class to the processid cell
+                const processIdCell = document.querySelector(`#processid-${index}`);
+                if (processIdCell) {
+                    processIdCell.classList.add('processed');
+                }
+
+                // Remove from the changes array
                 changes = changes.filter(change => !(change.index === index && change.processId === processId));
             } catch (error) {
                 console.error('Error submitting row:', error);
+
+                // Show error message
                 document.getElementById('errorMessage').innerText = 'Submit failed';
                 document.getElementById('errorMessage').style.display = 'block';
                 setTimeout(() => {

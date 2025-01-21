@@ -71,6 +71,7 @@ function initDatabaseAndLoadData() {
 
     // Create table if it does not exist
     db.run(`CREATE TABLE IF NOT EXISTS records (
+        url TEXT,
         keep TEXT,
         ranking TEXT,
         BAGS TEXT,
@@ -188,7 +189,7 @@ function initDatabaseAndLoadData() {
 
                     // Insert data into SQLite database
                     const stmt = db.prepare(`INSERT OR REPLACE INTO records (
-                        keep, ranking, BAGS, status, recordid, taxonid, processid, sampleid, fieldid, museumid, record_id, specimenid,
+                        url, keep, ranking, BAGS, status, recordid, taxonid, processid, sampleid, fieldid, museumid, record_id, specimenid,
                         processid_minted_date, bin_uri, bin_created_date, collection_code, inst, taxid, kingdom, phylum, class, "order",
                         family, subfamily, tribe, genus, species, subspecies, species_reference, identification, identification_method,
                         identification_rank, identified_by, identifier_email, taxonomy_notes, sex, reproduction, life_stage, short_note,
@@ -199,11 +200,13 @@ function initDatabaseAndLoadData() {
                         primers_forward, primers_reverse, sequence_run_site, sequence_upload_date, recordset_code_arr, extrainfo, country,
                         collection_note, associated_specimen, gb_acs, nucraw, SPECIES_ID, TYPE_SPECIMEN, SEQ_QUALITY, HAS_IMAGE, COLLECTORS,
                         IDENTIFIER, ID_METHOD, INSTITUTION, PUBLIC_VOUCHER, MUSEUM_ID, curator_notes
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`);
                     
                     data.forEach(record => {
+                        const url = record.processid ? `https://portal.boldsystems.org/record/${record.processid}` : null;
+
                         stmt.run(
-                            record.keep, record.ranking, record.BAGS, record.status, record.recordid, record.taxonid, record.processid,
+                            url, record.keep, record.ranking, record.BAGS, record.status, record.recordid, record.taxonid, record.processid,
                             record.sampleid, record.fieldid, record.museumid, record.record_id, record.specimenid, record.processid_minted_date,
                             record.bin_uri, record.bin_created_date, record.collection_code, record.inst, record.taxid, record.kingdom,
                             record.phylum, record.class, record.order, record.family, record.subfamily, record.tribe, record.genus,
@@ -317,6 +320,7 @@ app.post('/generate', (req, res) => {
             return `
                 <tr>
                     ${row}
+                    <td><a href="${item.url}" target="_blank">Link</a></td>
                     <td>
                         <select id="keep-${index}">
                             <option value="" ${!item.keep ? 'selected' : ''}></option>
@@ -354,6 +358,7 @@ app.post('/generate', (req, res) => {
                 <thead>
                     <tr>
                         ${tableHeaders}
+                        <th>url</th>
                         <th>Keep</th>
                         <th>Process ID</th>
                         <th>Status</th>
@@ -511,7 +516,7 @@ app.post('/search', (req, res) => {
             }).join('');
             return `
                 <tr>
-                    ${row}
+                    ${row}                   
                     <td>
                         <select id="keep-${index}">
                             <option value="hold" ${item.keep === 'hold' ? 'selected' : ''}>hold</option>
@@ -543,7 +548,7 @@ app.post('/search', (req, res) => {
             <table id="dataTable">
                 <thead>
                         <tr>
-                        ${tableHeaders}
+                        ${tableHeaders}                        
                         <th>Keep</th>
                         <th>Process ID</th>
                         <th>Status</th>
