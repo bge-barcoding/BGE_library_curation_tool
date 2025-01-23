@@ -92,9 +92,14 @@
             background-color: #f8d7da;
             color: #721c24;
         }
-        .processed {
-            background-color: #d1e7dd; /* Light green for processed rows */
-            color: #0f5132; /* Darker green text for better contrast */
+        .red-row {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .green-row {
+            background-color: #d4edda;
+            color: #155724;
         }      
     </style>
 </head>
@@ -144,6 +149,7 @@
             <div id="successMessage" class="success-message" style="display: none;"></div>
             
         <button type="button" onclick="applyFilter()" style="background-color: lightyellow; color: black;">Apply Filter</button>
+        <button id="toggleRedRows" style="background-color: lightcoral;">Hide Red Rows</button>
         <fieldset>
             <legend>Select Columns to Display:</legend>
             <div class="checkbox-group" id="checkboxGroup"></div>
@@ -214,8 +220,7 @@
     } catch (error) {
         console.error('Error loading columns:', error);
     }
-    colorizeTableCells();
-    colorizeStatusCells();
+    
 });
     function handleSearchTypeChange(searchTypeId) {
         const searchTypeElement = document.getElementById(searchTypeId);
@@ -266,6 +271,76 @@ function colorizeBinUriCells() {
         }
     }
 }
+
+function applyStatusRowColoringAndExcludeRed() {
+    const table = $('#dataTable').DataTable().table().node();
+    if (!table) {
+        console.error('Table is undefined!');
+        return;
+    }
+
+    const rows = table.getElementsByTagName('tr');
+    const statusColumnIndex = getColumnIndexByName('#dataTable', 'status');
+    if (statusColumnIndex === -1) {
+        console.error('Status column not found!');
+        return;
+    }
+
+    for (let row of rows) {
+        const cells = row.getElementsByTagName('td');
+        if (cells.length > statusColumnIndex) {
+            const statusCell = cells[statusColumnIndex];
+
+            // Access the dropdown value
+            const dropdown = statusCell.querySelector('select');
+            const statusValue = dropdown ? dropdown.value.trim().toLowerCase() : '';
+
+            console.log('Processing Row:', row, 'Status (Dropdown):', statusValue || '<empty>');
+
+            // Reset styles and visibility
+            row.style.backgroundColor = '';
+            row.style.color = '';
+            row.style.display = ''; // Ensure all rows are visible by default
+
+            // Apply styles based on status value
+            if (statusValue === 'valid') {
+                row.style.backgroundColor = '#d4edda'; // Green for "valid"
+                row.style.color = '#155724';
+            } else if (statusValue === 'invalid' || statusValue === 'not in europe') {
+                row.style.backgroundColor = '#f8d7da'; // Red for "Invalid" or "Not in Europe"
+                row.style.color = '#721c24';
+
+                // Exclude (hide) red rows
+                row.style.display = 'none';
+            }
+        }
+    }
+}
+let hideRedRows = true; // Default to hiding red rows
+
+document.getElementById('toggleRedRows').addEventListener('click', () => {
+    hideRedRows = !hideRedRows;
+    const table = $('#dataTable').DataTable().table().node();
+    const rows = table.getElementsByTagName('tr');
+    const statusColumnIndex = getColumnIndexByName('#dataTable', 'status');
+
+    for (let row of rows) {
+        const cells = row.getElementsByTagName('td');
+        if (cells.length > statusColumnIndex) {
+            const statusCell = cells[statusColumnIndex];
+            const dropdown = statusCell.querySelector('select');
+            const statusValue = dropdown ? dropdown.value.trim().toLowerCase() : '';
+
+            if (statusValue === 'invalid' || statusValue === 'not in europe') {
+                row.style.display = hideRedRows ? 'none' : '';
+            }
+        }
+    }
+
+    document.getElementById('toggleRedRows').textContent = hideRedRows ? 'Show Red Rows' : 'Hide Red Rows';
+});
+
+
         function getColumnIndexByName(table, columnName) {
             const headers = $(table).find('thead th');
             for (let i = 0; i < headers.length; i++) {
@@ -292,20 +367,18 @@ function colorizeBinUriCells() {
             };
             const keepIndex = getColumnIndexByName('#dataTable', 'keep');
             const speciesIndex = getColumnIndexByName('#dataTable', 'Species');
-            const statusIndex = getColumnIndexByName('#dataTable', 'Status');
-            const rankingIndex = getColumnIndexByName('#dataTable', 'Ranking');
+            const statusIndex = getColumnIndexByName('#dataTable', 'Status');            
             const additionalStatusIndex = getColumnIndexByName('#dataTable', 'Additional Status');
             const curator_notesIndex = getColumnIndexByName('#dataTable', 'Curator Notes');
             
             $('#dataTable').DataTable({
                 "columnDefs": [
                     { "orderDataType": "dom-select", "targets": [keepIndex, statusIndex, additionalStatusIndex] },   // Dropdown-menue
-                    { "orderDataType": "dom-text", "targets": [speciesIndex, rankingIndex, curator_notesIndex] },  
+                    { "orderDataType": "dom-text", "targets": [speciesIndex, curator_notesIndex] },  
                 ],
                 "drawCallback": function(settings) {
-                    colorizeTableCells(); // colorize cells
-                    colorizeStatusCells();
-                    colorizeBinUriCells(); 
+                    colorizeBinUriCells();                    
+                    applyStatusRowColoringAndExcludeRed();
                 }
             });
         }
@@ -341,8 +414,8 @@ function colorizeBinUriCells() {
 
             updateDistinctValues('bin_uri', searchTerm, searchType, searchTerm2, searchType2);
 
-            colorizeTableCells();
-            colorizeBinUriCells();
+            colorizeBinUriCells();     
+            applyStatusRowColoringAndExcludeRed();
 
         } catch (error) {
             console.error('Error fetching records:', error);
@@ -350,50 +423,6 @@ function colorizeBinUriCells() {
             document.getElementById('errorMessage').style.display = 'block';
         }
     }
-        function colorizeTableCells() {
-            const table = $('#dataTable').DataTable().table().node();
-            const rows = table.getElementsByTagName('tr');
-            const nucBasecountIndex = getColumnIndexByName('#dataTable', 'nuc_basecount');
-            if (nucBasecountIndex === -1) return; // collumn not available
-
-            for (let row of rows) {
-                const cells = row.getElementsByTagName('td');
-                if (cells.length > nucBasecountIndex) {
-                    const cell = cells[nucBasecountIndex];
-                    const cellValue = parseFloat(cell.innerText);
-                    if (!isNaN(cellValue)) {
-                        if (cellValue < 400) {
-                            cell.className = 'low-value';
-                        } else if (cellValue >= 400 && cellValue < 600) {
-                            cell.className = 'medium-value';
-                        } else {
-                            cell.className = 'high-value';
-                        }
-                    }
-                }
-            }
-        }
-function colorizeStatusCells() {
-    const table = $('#dataTable').DataTable().table().node();
-    const rows = table.getElementsByTagName('tr');
-    const statusIndex = getColumnIndexByName('#dataTable', 'status');
-    if (statusIndex === -1) return; // collumn not available
-
-    for (let row of rows) {
-        const cells = row.getElementsByTagName('td');
-        if (cells.length > statusIndex) {
-            const cell = cells[statusIndex];
-            const cellValue = cell.innerText.trim().toLowerCase(); 
-            if (cellValue === 'valid') {
-                cell.className = 'valid-status'; 
-            } else if (cellValue === 'synonym') {
-                cell.className = 'synonym-status'; 
-            } else {
-                // add further conditions here
-            }
-        }
-    }
-}
 async function updateDistinctValues(column, searchTerm, searchType, searchTerm2, searchType2) {
     try {
 
@@ -459,8 +488,7 @@ async function updateDistinctValues(column, searchTerm, searchType, searchTerm2,
 
             const keep = document.getElementById(`keep-${index}`).value;
             const status = document.getElementById(`status-${index}`).value;
-            const additionalStatus = document.getElementById(`additionalStatus-${index}`).value;
-            const ranking = document.getElementById(`ranking-${index}`).value;
+            const additionalStatus = document.getElementById(`additionalStatus-${index}`).value;            
             const species = document.getElementById(`species-${index}`).value;
             const curator_notes = document.getElementById(`curator_notes-${index}`).value;
             
@@ -470,32 +498,22 @@ async function updateDistinctValues(column, searchTerm, searchType, searchTerm2,
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ keep, processId, status, additionalStatus, ranking, species, curator_notes })
+                    body: JSON.stringify({ keep, processId, status, additionalStatus, species, curator_notes })
                 });
 
                 if (!response.ok) {
                     throw new Error('Failed to submit row');
                 }
 
-                // Show success message
                 document.getElementById('successMessage').innerText = 'Submit successful';
                 document.getElementById('successMessage').style.display = 'block';
                 setTimeout(() => {
                     document.getElementById('successMessage').style.display = 'none';
                 }, 3000);
 
-                // Apply the "processed" class to the processid cell
-                const processIdCell = document.querySelector(`#processid-${index}`);
-                if (processIdCell) {
-                    processIdCell.classList.add('processed');
-                }
-
-                // Remove from the changes array
                 changes = changes.filter(change => !(change.index === index && change.processId === processId));
             } catch (error) {
                 console.error('Error submitting row:', error);
-
-                // Show error message
                 document.getElementById('errorMessage').innerText = 'Submit failed';
                 document.getElementById('errorMessage').style.display = 'block';
                 setTimeout(() => {

@@ -291,7 +291,7 @@ app.post('/generate', (req, res) => {
     }
 
     // Exclude rows with specific statuses (case-insensitive)
-    conditions.push(`(LOWER(status) NOT IN ('invalid', 'not in europe') OR status IS NULL)`);
+    conditions.push(`(LOWER(status) NOT IN ('xxxxxx', 'yyyyyy') OR status IS NULL)`); //Exclude rows with status "Invalid" and "Not in Europe", deactivated!!!
 
     // Combine all conditions
     if (conditions.length > 0) {
@@ -299,8 +299,8 @@ app.post('/generate', (req, res) => {
     }
 
     // Log the query for debugging
-    console.log('SQL Query:', sqlQuery);
-    console.log('Params:', params);
+    //console.log('SQL Query:', sqlQuery);
+    //console.log('Params:', params);
 
     // Execute the SQL query
     db.all(sqlQuery, params, (err, rows) => {
@@ -320,7 +320,7 @@ app.post('/generate', (req, res) => {
             return `
                 <tr>
                     ${row}
-                    <td><a href="${item.url}" target="_blank">Link</a></td>
+                    <td><a href="${item.url}" target="_blank">Link</a></td>                    
                     <td>
                         <select id="keep-${index}">
                             <option value="" ${!item.keep ? 'selected' : ''}></option>
@@ -345,7 +345,7 @@ app.post('/generate', (req, res) => {
                             <option value="typo" ${item.additionalStatus === 'typo' ? 'selected' : ''}>typo</option>
                         </select>
                     </td>
-                    <td><input type="text" id="ranking-${index}" value="${item.ranking || ''}"></td>
+                    <td>${item.ranking || ''}</td>                    
                     <td><input type="text" id="species-${index}" value="${item.species || ''}"></td>
                     <td><input type="text" id="curator_notes-${index}" value="${item.curator_notes || ''}"></td>
                     <td><button onclick="submitRow(event, ${index}, '${item.processid || ''}')">Submit</button></td>
@@ -378,9 +378,9 @@ app.post('/generate', (req, res) => {
     });
 });
 app.post('/submit', (req, res) => {
-    const { keep, processId, status, additionalStatus, ranking, species, curator_notes } = req.body;
+    const { keep, processId, status, additionalStatus, species, curator_notes } = req.body;
     // SQL command to get the current values
-    const sqlSelect = `SELECT keep, species, status, additionalStatus, ranking, curator_notes FROM records WHERE processid = ?`;
+    const sqlSelect = `SELECT keep, species, status, additionalStatus, curator_notes FROM records WHERE processid = ?`;
     db.get(sqlSelect, [processId], (selectErr, oldData) => {
         if (selectErr) {
             console.error('Error fetching current data from database:', selectErr);
@@ -389,15 +389,14 @@ app.post('/submit', (req, res) => {
         const currentKeep = oldData.keep || '';
         const currentSpecies = oldData.species || '';
         const currentStatus = oldData.status || '';
-        const currentAdditionalStatus = oldData.additionalStatus || '';
-        const currentRanking = oldData.ranking || '';
+        const currentAdditionalStatus = oldData.additionalStatus || '';        
         const currentCurator_notes = oldData.curator_notes || '';
         console.log('oldData.additionalStatus');
         let changes = {
             oldValues: {},
             newValues: {}
         }; // Object to track what has changed
-        // Function to update status, additionalStatus, and ranking
+        // Function to update status, additionalStatus
         function updateOtherFields() {
             // Check for changes in other fields and log them
             if (keep !== currentKeep) {
@@ -411,11 +410,7 @@ app.post('/submit', (req, res) => {
             if (additionalStatus !== currentAdditionalStatus) {
                 changes.oldValues.additionalStatus = currentAdditionalStatus;
                 changes.newValues.additionalStatus = additionalStatus;
-            }
-            if (ranking !== currentRanking) {
-                changes.oldValues.ranking = currentRanking;
-                changes.newValues.ranking = ranking;
-            }
+            }            
             if (curator_notes !== currentCurator_notes) {
                 changes.oldValues.curator_notes = currentCurator_notes;
                 changes.newValues.curator_notes = curator_notes;
@@ -424,17 +419,16 @@ app.post('/submit', (req, res) => {
             const sqlUpdate = `UPDATE records
                                SET keep = ?,
                                    status = ?,
-                                   additionalStatus = ?,
-                                   ranking = ?,
+                                   additionalStatus = ?,                                                                      
                                    curator_notes = ?
                                WHERE processid = ?`;
-            db.run(sqlUpdate, [keep, status, additionalStatus, ranking, curator_notes, processId], function(err) {
+            db.run(sqlUpdate, [keep, status, additionalStatus, curator_notes, processId], function(err) {
                 if (err) {
                     console.error('Error updating record in database:', err);
                     return res.status(500).json({ success: false, message: 'Error updating record in database' });
                 }
                 console.log(`Row with Process ID ${processId} updated successfully.`);
-                // Log all changes (species, status, additionalStatus, ranking)
+                // Log all changes (species, status, additionalStatus)
                 if (Object.keys(changes.oldValues).length > 0) {
                     writeToLog(processId, 'Updated', changes.oldValues, changes.newValues);
                 }
@@ -475,7 +469,7 @@ app.post('/submit', (req, res) => {
 
                             console.log(`Updated species name from ${currentSpecies} to ${updatedSpecies} in all relevant rows.`);
 
-                            // Proceed with updating the status, additionalStatus, and ranking for the specific processId
+                            // Proceed with updating the status, additionalStatus for the specific processId
                             updateOtherFields();
                         });
                     } else {
@@ -484,12 +478,12 @@ app.post('/submit', (req, res) => {
                     }
                 });
             } else {
-                // Proceed with updating the status, additionalStatus, and ranking for the specific processId
+                // Proceed with updating the status, additionalStatus for the specific processId
                 // without updating the species in other records
                 updateOtherFields();
             }
         } else {
-            // Proceed with updating the status, additionalStatus, and ranking if species hasn't changed
+            // Proceed with updating the status, additionalStatus if species hasn't changed
             updateOtherFields();
         }
     });
@@ -537,8 +531,7 @@ app.post('/search', (req, res) => {
                             <option value="synonym" ${item.additionalStatus === 'synonym' ? 'selected' : ''}>Synonym</option>
                             <option value="typo" ${item.additionalStatus === 'typo' ? 'selected' : ''}>typo</option>
                         </select>
-                    </td>
-                    <td><input type="text" id="ranking-${index}" value="${item.ranking || ''}"></td>
+                    </td>                    
                     <td><input type="text" id="species-${index}" value="${item.species || ''}"></td>
                     <td><input type="text" id="curator_notes-${index}" value="${item.curator_notes || ''}"></td>
                     <td><button onclick="submitRow(event, ${index}, '${item.processid}')">Submit</button></td>
@@ -552,8 +545,7 @@ app.post('/search', (req, res) => {
                         <th>Keep</th>
                         <th>Process ID</th>
                         <th>Status</th>
-                        <th>Reason</th>
-                        <th>Ranking</th>
+                        <th>Reason</th>                        
                         <th>Curator_notes</th>
                         <th>Actions</th>
                     </tr>
