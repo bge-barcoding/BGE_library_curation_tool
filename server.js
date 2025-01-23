@@ -320,14 +320,7 @@ app.post('/generate', (req, res) => {
             return `
                 <tr>
                     ${row}
-                    <td><a href="${item.url}" target="_blank">Link</a></td>                    
-                    <td>
-                        <select id="keep-${index}">
-                            <option value="" ${!item.keep ? 'selected' : ''}></option>
-                            <option value="hold" ${item.keep === 'hold' ? 'selected' : ''}>hold</option>
-                            <option value="reject" ${item.keep === 'reject' ? 'selected' : ''}>reject</option>
-                        </select>
-                    </td>
+                    <td><a href="${item.url}" target="_blank">Link</a></td>                 
                     <td id="processid-${index}">${item.processid || ''}</td>
                     <td>
                         <select id="status-${index}">
@@ -358,8 +351,7 @@ app.post('/generate', (req, res) => {
                 <thead>
                     <tr>
                         ${tableHeaders}
-                        <th>url</th>
-                        <th>Keep</th>
+                        <th>url</th>                        
                         <th>Process ID</th>
                         <th>Status</th>
                         <th>Reason name correction</th>
@@ -378,15 +370,14 @@ app.post('/generate', (req, res) => {
     });
 });
 app.post('/submit', (req, res) => {
-    const { keep, processId, status, additionalStatus, species, curator_notes } = req.body;
+    const {processId, status, additionalStatus, species, curator_notes } = req.body;
     // SQL command to get the current values
-    const sqlSelect = `SELECT keep, species, status, additionalStatus, curator_notes FROM records WHERE processid = ?`;
+    const sqlSelect = `SELECT species, status, additionalStatus, curator_notes FROM records WHERE processid = ?`;
     db.get(sqlSelect, [processId], (selectErr, oldData) => {
         if (selectErr) {
             console.error('Error fetching current data from database:', selectErr);
             return res.status(500).json({ success: false, message: 'Error fetching current data from database' });
-        }
-        const currentKeep = oldData.keep || '';
+        }        
         const currentSpecies = oldData.species || '';
         const currentStatus = oldData.status || '';
         const currentAdditionalStatus = oldData.additionalStatus || '';        
@@ -398,11 +389,7 @@ app.post('/submit', (req, res) => {
         }; // Object to track what has changed
         // Function to update status, additionalStatus
         function updateOtherFields() {
-            // Check for changes in other fields and log them
-            if (keep !== currentKeep) {
-                changes.oldValues.keep = currentKeep;
-                changes.newValues.keep = keep;
-            }
+            // Check for changes in other fields and log them            
             if (status !== currentStatus) {
                 changes.oldValues.status = currentStatus;
                 changes.newValues.status = status;
@@ -417,12 +404,11 @@ app.post('/submit', (req, res) => {
             }
             // SQL to update the rest of the fields for the specific processId
             const sqlUpdate = `UPDATE records
-                               SET keep = ?,
-                                   status = ?,
+                               SET status = ?,
                                    additionalStatus = ?,                                                                      
                                    curator_notes = ?
                                WHERE processid = ?`;
-            db.run(sqlUpdate, [keep, status, additionalStatus, curator_notes, processId], function(err) {
+            db.run(sqlUpdate, [status, additionalStatus, curator_notes, processId], function(err) {
                 if (err) {
                     console.error('Error updating record in database:', err);
                     return res.status(500).json({ success: false, message: 'Error updating record in database' });
@@ -510,13 +496,7 @@ app.post('/search', (req, res) => {
             }).join('');
             return `
                 <tr>
-                    ${row}                   
-                    <td>
-                        <select id="keep-${index}">
-                            <option value="hold" ${item.keep === 'hold' ? 'selected' : ''}>hold</option>
-                            <option value="reject" ${item.keep === 'reject' ? 'selected' : ''}>reject</option>
-                        </select>
-                    </td>
+                    ${row}                 
                     <td id="processid-${index}">${item.processid}</td>
                     <td>
                         <select id="status-${index}">
@@ -541,8 +521,7 @@ app.post('/search', (req, res) => {
             <table id="dataTable">
                 <thead>
                         <tr>
-                        ${tableHeaders}                        
-                        <th>Keep</th>
+                        ${tableHeaders}                      
                         <th>Process ID</th>
                         <th>Status</th>
                         <th>Reason</th>                        
@@ -560,7 +539,8 @@ app.post('/search', (req, res) => {
 app.post('/distinct-values', (req, res) => {
     const { column, searchTerm, searchType, searchTerm2, searchType2 } = req.body;
 
-    let sqlQuery = `SELECT COUNT(DISTINCT ${column}) AS distinctCount FROM records`;
+    // Base SQL query to filter records
+    let baseQuery = `SELECT * FROM records`;
     const params = [];
     const conditions = [];
 
@@ -578,17 +558,33 @@ app.post('/distinct-values', (req, res) => {
     // Exclude rows with specific statuses
     conditions.push(`(LOWER(status) NOT IN ('invalid', 'not in europe') OR status IS NULL)`);
 
+    // Add conditions to the base query
     if (conditions.length > 0) {
-        sqlQuery += ` WHERE ${conditions.join(' AND ')}`;
+        baseQuery += ` WHERE ${conditions.join(' AND ')}`;
     }
 
-    // Execute the query
-    db.get(sqlQuery, params, (err, row) => {
+    // Execute the base query to fetch filtered records
+    db.all(baseQuery, params, (err, rows) => {
         if (err) {
-            console.error('Error fetching distinct BIN count:', err);
-            return res.status(500).json({ success: false, message: 'Error fetching distinct BIN count' });
+            console.error('Error fetching filtered records:', err);
+            return res.status(500).json({ success: false, message: 'Error fetching records' });
         }
-        res.json({ success: true, count: row.distinctCount });
+
+        // Calculate statistics
+        const recordCount = rows.length;
+        const speciesSet = new Set(rows.map(row => row.species).filter(Boolean));
+        const binSet = new Set(rows.map(row => row.bin_uri).filter(Boolean));
+
+        const speciesCount = speciesSet.size;
+        const binCount = binSet.size;
+
+        // Return statistics
+        res.json({
+            success: true,
+            recordCount,
+            speciesCount,
+            binCount
+        });
     });
 });
 app.get('/distinct-values', (req, res) => {
