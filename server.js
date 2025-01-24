@@ -290,17 +290,13 @@ app.post('/generate', (req, res) => {
         params.push(`%${searchTerm2}%`);
     }
 
-    // Exclude rows with specific statuses (case-insensitive)
-    conditions.push(`(LOWER(status) NOT IN ('xxxxxx', 'yyyyyy') OR status IS NULL)`); //Exclude rows with status "Invalid" and "Not in Europe", deactivated!!!
+    // Exclude rows with specific statuses
+    conditions.push(`(LOWER(status) NOT IN ('xxxxxx', 'yyyyyy') OR status IS NULL)`);
 
     // Combine all conditions
     if (conditions.length > 0) {
         sqlQuery += ` WHERE ${conditions.join(' AND ')}`;
     }
-
-    // Log the query for debugging
-    //console.log('SQL Query:', sqlQuery);
-    //console.log('Params:', params);
 
     // Execute the SQL query
     db.all(sqlQuery, params, (err, rows) => {
@@ -309,19 +305,57 @@ app.post('/generate', (req, res) => {
             return res.status(500).json({ success: false, message: 'Error fetching records from database' });
         }
 
+        // Analyze BIN-sharing and BIN-splitting
+        const binSharingMap = {};
+        const speciesBinMap = {};
+
+        rows.forEach(row => {
+            // BIN-sharing: Group species by bin_uri
+            if (row.bin_uri) {
+                if (!binSharingMap[row.bin_uri]) {
+                    binSharingMap[row.bin_uri] = new Set();
+                }
+                binSharingMap[row.bin_uri].add(row.species);
+            }
+
+            // BIN-splitting: Group bin_uri by species
+            if (row.species) {
+                if (!speciesBinMap[row.species]) {
+                    speciesBinMap[row.species] = new Set();
+                }
+                speciesBinMap[row.species].add(row.bin_uri);
+            }
+        });
+
         // Generate HTML table headers
-        const tableHeaders = columns.map(column => `<th>${column}</th>`).join('');
+        const tableHeaders = columns.map(column => `<th>${column}</th>`).join('') + '<th>BIN Info</th>';
 
         // Generate HTML table rows
         const tableRows = rows.map((item, index) => {
+            // Determine BIN info
+            const sharedSpecies = binSharingMap[item.bin_uri] ? Array.from(binSharingMap[item.bin_uri]) : [];
+            const splitBins = speciesBinMap[item.species] ? Array.from(speciesBinMap[item.species]) : [];
+
+            let binInfo = '';
+            if (sharedSpecies.length > 1) {
+                binInfo += `BIN-sharing: ${sharedSpecies.join(', ')}. `;
+            }
+            if (splitBins.length > 1) {
+                binInfo += `BIN-splitting: ${splitBins.join(', ')}.`;
+            }
+
+            // Generate row HTML
             const row = columns.map(column => {
                 return `<td id="${column.toLowerCase()}-${index}">${item[column.toLowerCase()] || ''}</td>`;
             }).join('');
             return `
                 <tr>
                     ${row}
-                    <td><a href="${item.url}" target="_blank">Link</a></td>                 
+                    <td>${binInfo.trim()}</td>
+                    <td><a href="${item.url}" target="_blank">Link</a></td>
                     <td id="processid-${index}">${item.processid || ''}</td>
+                    <td>${item.country_ocean || ''}</td>
+                    <td>${item.ranking || ''}</td>
                     <td>
                         <select id="status-${index}">
                             <option value="" ${!item.status ? 'selected' : ''}></option>
@@ -338,7 +372,6 @@ app.post('/generate', (req, res) => {
                             <option value="typo" ${item.additionalStatus === 'typo' ? 'selected' : ''}>typo</option>
                         </select>
                     </td>
-                    <td>${item.ranking || ''}</td>                    
                     <td><input type="text" id="species-${index}" value="${item.species || ''}"></td>
                     <td><input type="text" id="curator_notes-${index}" value="${item.curator_notes || ''}"></td>
                     <td><button onclick="submitRow(event, ${index}, '${item.processid || ''}')">Submit</button></td>
@@ -351,11 +384,12 @@ app.post('/generate', (req, res) => {
                 <thead>
                     <tr>
                         ${tableHeaders}
-                        <th>url</th>                        
+                        <th>url</th>
                         <th>Process ID</th>
+                        <th>Country_ocean</th>
+                        <th>Ranking</th>
                         <th>Status</th>
                         <th>Reason name correction</th>
-                        <th>Ranking</th>
                         <th>Correct species name</th>
                         <th>Curator_notes</th>
                         <th>Actions</th>
@@ -369,6 +403,7 @@ app.post('/generate', (req, res) => {
         res.json({ success: true, table });
     });
 });
+
 app.post('/submit', (req, res) => {
     const {processId, status, additionalStatus, species, curator_notes } = req.body;
     // SQL command to get the current values
@@ -539,8 +574,7 @@ app.post('/search', (req, res) => {
 app.post('/distinct-values', (req, res) => {
     const { column, searchTerm, searchType, searchTerm2, searchType2 } = req.body;
 
-    // Base SQL query to filter records
-    let baseQuery = `SELECT * FROM records`;
+    let sqlQuery = `SELECT * FROM records`;
     const params = [];
     const conditions = [];
 
@@ -558,32 +592,60 @@ app.post('/distinct-values', (req, res) => {
     // Exclude rows with specific statuses
     conditions.push(`(LOWER(status) NOT IN ('invalid', 'not in europe') OR status IS NULL)`);
 
-    // Add conditions to the base query
+    // Add conditions to the query
     if (conditions.length > 0) {
-        baseQuery += ` WHERE ${conditions.join(' AND ')}`;
+        sqlQuery += ` WHERE ${conditions.join(' AND ')}`;
     }
 
-    // Execute the base query to fetch filtered records
-    db.all(baseQuery, params, (err, rows) => {
+    // Execute query
+    db.all(sqlQuery, params, (err, rows) => {
         if (err) {
-            console.error('Error fetching filtered records:', err);
-            return res.status(500).json({ success: false, message: 'Error fetching records' });
+            console.error('Error fetching data:', err);
+            return res.status(500).json({ success: false, message: 'Error fetching data' });
         }
 
         // Calculate statistics
         const recordCount = rows.length;
         const speciesSet = new Set(rows.map(row => row.species).filter(Boolean));
         const binSet = new Set(rows.map(row => row.bin_uri).filter(Boolean));
+        const curatedCount = rows.filter(row => row.status).length;
+        const uncuratedCount = recordCount - curatedCount;
 
-        const speciesCount = speciesSet.size;
-        const binCount = binSet.size;
+        // BIN-sharing and BIN-splitting analysis
+        const binSharingMap = {};
+        const speciesBinMap = {};
+        rows.forEach(row => {
+            // BIN-sharing
+            if (row.bin_uri) {
+                if (!binSharingMap[row.bin_uri]) {
+                    binSharingMap[row.bin_uri] = new Set();
+                }
+                binSharingMap[row.bin_uri].add(row.species);
+            }
 
-        // Return statistics
+            // BIN-splitting
+            if (row.species) {
+                if (!speciesBinMap[row.species]) {
+                    speciesBinMap[row.species] = new Set();
+                }
+                speciesBinMap[row.species].add(row.bin_uri);
+            }
+        });
+
+        // Count BIN-sharing and BIN-splitting events
+        const binSharingEvents = Object.values(binSharingMap).filter(set => set.size > 1).length;
+        const binSplittingEvents = Object.values(speciesBinMap).filter(set => set.size > 1).length;
+
+        // Respond with all statistics
         res.json({
             success: true,
             recordCount,
-            speciesCount,
-            binCount
+            speciesCount: speciesSet.size,
+            binCount: binSet.size,
+            curatedCount,
+            uncuratedCount,
+            binSharingEvents,
+            binSplittingEvents
         });
     });
 });

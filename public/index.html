@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<div style="background: url(ressources/underconstruction.jpg); 
+<div style="background: url(ressources/Logo_BGE.jpg); 
             background-repeat: no-repeat; 
-            background-position: 1000px 2px; 
-            background-size: 450px 450px;">
+            background-position: 1000px 20px; 
+            background-size: 700px auto;">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=0.2">
     <title>Library Curation Tool</title>
@@ -475,9 +475,13 @@ async function updateDistinctValues(column, searchTerm, searchType, searchTerm2,
             const recordCount = data.recordCount || 0;
             const speciesCount = data.speciesCount || 0;
             const binCount = data.binCount || 0;
+            const curatedCount = data.curatedCount || 0;
+            const uncuratedCount = data.uncuratedCount || 0;
+            const binSharingEvents = data.binSharingEvents || 0;
+            const binSplittingEvents = data.binSplittingEvents || 0;
 
             // Update the statistics field
-            const statisticsText = `${recordCount} records, ${speciesCount} species, and ${binCount} BINs.`;
+            const statisticsText = `${recordCount} total records, ${curatedCount} curated records, ${uncuratedCount} uncurated records, ${speciesCount} species, ${binCount} BINs, ${binSharingEvents} BIN-sharing events, and ${binSplittingEvents} BIN-splitting events.`;
             document.getElementById('statisticsText').innerText = statisticsText;
         } else {
             document.getElementById('statisticsText').innerText = 'Error fetching data.';
