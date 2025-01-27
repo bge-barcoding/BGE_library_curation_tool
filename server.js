@@ -338,10 +338,10 @@ app.post('/generate', (req, res) => {
 
             let binInfo = '';
             if (sharedSpecies.length > 1) {
-                binInfo += `BIN-sharing: ${sharedSpecies.join(', ')}. `;
+                binInfo += `<b>BIN-sharing:</b> ${sharedSpecies.join(', ')}. `;
             }
             if (splitBins.length > 1) {
-                binInfo += `BIN-splitting: ${splitBins.join(', ')}.`;
+                binInfo += `<b>BIN-splitting:</b> ${splitBins.join(', ')}.`;
             }
 
             // Generate row HTML
