@@ -1,4 +1,5 @@
 const express = require('express');
+const bodyParser = require('body-parser');
 const fs = require('fs');
 const path = require('path');
 const { parseString } = require('xml2js');
@@ -8,6 +9,7 @@ const app = express();
 const PORT = 3000;
 app.use(express.json());
 app.use(express.static('public'));
+app.use(bodyParser.json());
 let db;
 let availableColumns = [];
 const xmlFile = path.join(__dirname, 'data.xml');
@@ -266,6 +268,22 @@ app.get('/records', (req, res) => {
 app.get('/columns', (req, res) => {
     res.json({ availableColumns });
 });
+// Function to calculate BAGS grading for a species
+function calculateBAGSGrade(binCount, recordCount, binSharing, bins) {
+    if (binSharing) return 'E'; // BIN-sharing event detected
+
+    if (binCount === 1) {
+        if (recordCount > 10) return 'A';
+        if (recordCount >= 3) return 'B';
+        if (recordCount < 3) return 'D';
+    } else {
+        // BIN-splitting case: Ensure all bins are exclusive to this species
+        const uniqueToSpecies = bins.every(bin => bin.exclusive);
+        if (uniqueToSpecies) return 'C';
+    }
+
+    return 'E'; // Default to grade E if none of the above conditions match
+}
 app.post('/generate', (req, res) => {
     const { searchTerm, searchType, searchTerm2, searchType2, columns } = req.body;
 
@@ -290,10 +308,7 @@ app.post('/generate', (req, res) => {
         params.push(`%${searchTerm2}%`);
     }
 
-    // Exclude rows with specific statuses
-    conditions.push(`(LOWER(status) NOT IN ('xxxxxx', 'yyyyyy') OR status IS NULL)`);
-
-    // Combine all conditions
+    // Combine all conditions (no filtering out invalid records here)
     if (conditions.length > 0) {
         sqlQuery += ` WHERE ${conditions.join(' AND ')}`;
     }
@@ -305,11 +320,15 @@ app.post('/generate', (req, res) => {
             return res.status(500).json({ success: false, message: 'Error fetching records from database' });
         }
 
-        // Analyze BIN-sharing and BIN-splitting
+        // Analyze BIN-sharing and BIN-splitting for valid records only
         const binSharingMap = {};
         const speciesBinMap = {};
 
         rows.forEach(row => {
+            if (row.status && (row.status.toLowerCase() === 'invalid' || row.status.toLowerCase() === 'not in europe')) {
+                return; // Skip invalid rows for BIN analysis
+            }
+
             // BIN-sharing: Group species by bin_uri
             if (row.bin_uri) {
                 if (!binSharingMap[row.bin_uri]) {
@@ -328,30 +347,43 @@ app.post('/generate', (req, res) => {
         });
 
         // Generate HTML table headers
-        const tableHeaders = columns.map(column => `<th>${column}</th>`).join('') + '<th>BIN Info</th>';
+        const tableHeaders = columns.map(column => `<th>${column}</th>`).join('') + '<th>BAGS</th><th>BIN Info</th>';
 
         // Generate HTML table rows
         const tableRows = rows.map((item, index) => {
-            // Determine BIN info
-            const sharedSpecies = binSharingMap[item.bin_uri] ? Array.from(binSharingMap[item.bin_uri]) : [];
-            const splitBins = speciesBinMap[item.species] ? Array.from(speciesBinMap[item.species]) : [];
+            // Construct BIN Info only for valid records
+            const validBins = speciesBinMap[item.species]
+                ? Array.from(speciesBinMap[item.species]).filter(bin => binSharingMap[bin])
+                : [];
+            const sharedSpecies = item.bin_uri && binSharingMap[item.bin_uri]
+                ? Array.from(binSharingMap[item.bin_uri]).filter(species => species && species !== item.species)
+                : [];
 
             let binInfo = '';
-            if (sharedSpecies.length > 1) {
+            if (sharedSpecies.length > 0) {
                 binInfo += `<b>BIN-sharing:</b> ${sharedSpecies.join(', ')}. `;
             }
-            if (splitBins.length > 1) {
-                binInfo += `<b>BIN-splitting:</b> ${splitBins.join(', ')}.`;
+            if (validBins.length > 1) {
+                binInfo += `<b>BIN-splitting:</b> ${validBins.join(', ')}.`;
+            } else if (validBins.length === 1) {
+                binInfo += `<b>Single BIN:</b> ${validBins[0]}.`;
             }
 
-            // Generate row HTML
+            // Calculate BAGS grade only for valid records
+            const binSharing = sharedSpecies.length > 0;
+            const binCount = validBins.length;
+            const recordCount = rows.filter(row => row.species === item.species && (!row.status || row.status.toLowerCase() !== 'invalid')).length;
+            const BAGS = calculateBAGSGrade(binCount, recordCount, binSharing, validBins.map(bin => ({ id: bin, exclusive: !binSharing })));
+
+            // Generate row HTML (include all records)
             const row = columns.map(column => {
                 return `<td id="${column.toLowerCase()}-${index}">${item[column.toLowerCase()] || ''}</td>`;
             }).join('');
             return `
-                <tr>
+                <tr class="${item.status && item.status.toLowerCase() === 'invalid' ? 'invalid-record' : ''}">
                     ${row}
-                    <td>${binInfo.trim()}</td>
+                    <td>${item.status && item.status.toLowerCase() === 'invalid' ? '' : BAGS}</td>
+                    <td>${item.status && item.status.toLowerCase() === 'invalid' ? '' : binInfo.trim()}</td>
                     <td><a href="${item.url}" target="_blank">Link</a></td>
                     <td id="processid-${index}">${item.processid || ''}</td>
                     <td>${item.country_ocean || ''}</td>
@@ -403,28 +435,30 @@ app.post('/generate', (req, res) => {
         res.json({ success: true, table });
     });
 });
-
+// app.post('/submit') endpoint
 app.post('/submit', (req, res) => {
-    const {processId, status, additionalStatus, species, curator_notes } = req.body;
+    const { processId, status, additionalStatus, species, curator_notes } = req.body;
+
     // SQL command to get the current values
     const sqlSelect = `SELECT species, status, additionalStatus, curator_notes FROM records WHERE processid = ?`;
     db.get(sqlSelect, [processId], (selectErr, oldData) => {
         if (selectErr) {
             console.error('Error fetching current data from database:', selectErr);
             return res.status(500).json({ success: false, message: 'Error fetching current data from database' });
-        }        
+        }
+
         const currentSpecies = oldData.species || '';
         const currentStatus = oldData.status || '';
-        const currentAdditionalStatus = oldData.additionalStatus || '';        
+        const currentAdditionalStatus = oldData.additionalStatus || '';
         const currentCurator_notes = oldData.curator_notes || '';
-        console.log('oldData.additionalStatus');
+
         let changes = {
             oldValues: {},
             newValues: {}
         }; // Object to track what has changed
-        // Function to update status, additionalStatus
-        function updateOtherFields() {
-            // Check for changes in other fields and log them            
+
+        // Function to update status, additionalStatus, curator_notes, and species
+        function updateOtherFields(updateSpecies = false) {
             if (status !== currentStatus) {
                 changes.oldValues.status = currentStatus;
                 changes.newValues.status = status;
@@ -432,41 +466,46 @@ app.post('/submit', (req, res) => {
             if (additionalStatus !== currentAdditionalStatus) {
                 changes.oldValues.additionalStatus = currentAdditionalStatus;
                 changes.newValues.additionalStatus = additionalStatus;
-            }            
+            }
             if (curator_notes !== currentCurator_notes) {
                 changes.oldValues.curator_notes = currentCurator_notes;
                 changes.newValues.curator_notes = curator_notes;
             }
-            // SQL to update the rest of the fields for the specific processId
+
+            // SQL to update the fields for the specific processId
             const sqlUpdate = `UPDATE records
                                SET status = ?,
-                                   additionalStatus = ?,                                                                      
+                                   additionalStatus = ?,
                                    curator_notes = ?
+                                   ${updateSpecies ? ', species = ?' : ''}
                                WHERE processid = ?`;
-            db.run(sqlUpdate, [status, additionalStatus, curator_notes, processId], function(err) {
+
+            const params = updateSpecies
+                ? [status, additionalStatus, curator_notes, species, processId]
+                : [status, additionalStatus, curator_notes, processId];
+
+            db.run(sqlUpdate, params, function(err) {
                 if (err) {
                     console.error('Error updating record in database:', err);
                     return res.status(500).json({ success: false, message: 'Error updating record in database' });
                 }
                 console.log(`Row with Process ID ${processId} updated successfully.`);
-                // Log all changes (species, status, additionalStatus)
                 if (Object.keys(changes.oldValues).length > 0) {
                     writeToLog(processId, 'Updated', changes.oldValues, changes.newValues);
                 }
                 res.json({ success: true, message: 'Row data updated successfully' });
             });
         }
+
         // Check if species has changed
         if (species && species.trim() !== currentSpecies) {
             const updatedSpecies = species.trim();
-            // Log the change in species
             changes.oldValues.species = currentSpecies;
             changes.newValues.species = updatedSpecies;
-            // Check if additionalStatus is 'synonym'
-            if (additionalStatus === 'synonym' || 'misidentified' || 'typo' || '') {
-                // SQL to select all records that have the same current species
+
+            // Update species for all records only if additionalStatus is 'typo' or 'synonym'
+            if (additionalStatus === 'typo' || additionalStatus === 'synonym') {
                 const sqlSelectAll = `SELECT processid FROM records WHERE species = ?`;
-                console.log('species')
                 db.all(sqlSelectAll, [currentSpecies], (selectAllErr, rows) => {
                     if (selectAllErr) {
                         console.error('Error selecting records for update:', selectAllErr);
@@ -478,10 +517,7 @@ app.post('/submit', (req, res) => {
                             console.log(`- Process ID: ${row.processid}`);
                         });
 
-                        // SQL to update species name in all records that have the same current species
-                        const sqlUpdateAll = `UPDATE records
-                                              SET species = ?
-                                              WHERE species = ?`;
+                        const sqlUpdateAll = `UPDATE records SET species = ? WHERE species = ?`;
                         db.run(sqlUpdateAll, [updatedSpecies, currentSpecies], function(err) {
                             if (err) {
                                 console.error('Error updating species in all records:', err);
@@ -490,7 +526,15 @@ app.post('/submit', (req, res) => {
 
                             console.log(`Updated species name from ${currentSpecies} to ${updatedSpecies} in all relevant rows.`);
 
-                            // Proceed with updating the status, additionalStatus for the specific processId
+                            // Log each affected record
+                            rows.forEach(row => {
+                                const logChanges = {
+                                    oldValues: { species: currentSpecies },
+                                    newValues: { species: updatedSpecies }
+                                };
+                                writeToLog(row.processid, 'Updated', logChanges.oldValues, logChanges.newValues);
+                            });    
+
                             updateOtherFields();
                         });
                     } else {
@@ -499,9 +543,8 @@ app.post('/submit', (req, res) => {
                     }
                 });
             } else {
-                // Proceed with updating the status, additionalStatus for the specific processId
-                // without updating the species in other records
-                updateOtherFields();
+                // Update only the specific record for other additionalStatus values
+                updateOtherFields(true);
             }
         } else {
             // Proceed with updating the status, additionalStatus if species hasn't changed
@@ -636,6 +679,17 @@ app.post('/distinct-values', (req, res) => {
         const binSharingEvents = Object.values(binSharingMap).filter(set => set.size > 1).length;
         const binSplittingEvents = Object.values(speciesBinMap).filter(set => set.size > 1).length;
 
+        // BAGS Grade statistics
+        const gradeCounts = { A: 0, B: 0, C: 0, D: 0, E: 0 };
+        speciesSet.forEach(species => {
+            const binCount = speciesBinMap[species] ? speciesBinMap[species].size : 0;
+            const recordCount = rows.filter(row => row.species === species).length;
+            const binSharing = Object.values(binSharingMap).some(set => set.has(species) && set.size > 1);
+
+            const grade = calculateBAGSGrade(binCount, recordCount, binSharing, Array.from(speciesBinMap[species] || []));
+            gradeCounts[grade]++;
+        });
+
         // Respond with all statistics
         res.json({
             success: true,
@@ -645,7 +699,8 @@ app.post('/distinct-values', (req, res) => {
             curatedCount,
             uncuratedCount,
             binSharingEvents,
-            binSplittingEvents
+            binSplittingEvents,
+            gradeCounts
         });
     });
 });
