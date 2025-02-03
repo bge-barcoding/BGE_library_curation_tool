@@ -14,5 +14,4 @@ cd BGE_library_curation_tool
 npm start
 ```
 open any browser (firefox, Chrome etc) 
-go to [localhost:3000](localhost:3000)
-## 
+go to localhost:3000
