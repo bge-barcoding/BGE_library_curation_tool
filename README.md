@@ -15,3 +15,5 @@ npm start
 ```
 open any browser (firefox, Chrome etc) 
 go to localhost:3000
+
+## Usage
