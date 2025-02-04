@@ -15,5 +15,7 @@ npm start
 ```
 open any browser (firefox, Chrome etc) 
 go to localhost:3000
-
+When starting the programm for the first time, wait until all reads are loaded in into the database.
+ 
 ## Usage
+
