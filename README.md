@@ -20,7 +20,7 @@ When starting the programm for the first time, wait until all reads are loaded i
 ## Usage
 
 To use the tool, a dataset is required that originates from the [library curation pipeline](https://github.com/FabianDeister/Library_curation_BOLD).  
-Dhe data is provided to users in the form of an XML file (data.xml). This file must be stored in the folder in which the server.js file is also located.
+The data is provided to users in the form of an XML file (data.xml). This file must be stored in the folder in which the server.js file is also located.
 ```bash
 .
 ├── BGE_library_curation_tool
@@ -30,5 +30,10 @@ Dhe data is provided to users in the form of an XML file (data.xml). This file m
 ├── package.json
 ├── public
 └── server.js
+```
+Once the data has been added to the folder and all dependencies are available, open a Terminal, navigate to the folder BGE_library_curation_tool.
 
-```  
+```bash
+cd BGE_Library_curation_tool
+start server.js
+``` 
