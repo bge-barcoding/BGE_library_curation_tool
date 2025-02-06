@@ -45,4 +45,3 @@ When you start the server for the first time, a new database is created into whi
 
 ![first_start.gif](first_start.gif)
 
-![first_start](https://drive.google.com/file/d/1OD-1TrRwHUA0JSZ2h3hZSGpM3eNGBNxn/view?usp=drive_link)
