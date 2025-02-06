@@ -6,8 +6,9 @@ This BGE library curation tool is a standalone programm to be used by taxonomic 
 
 ### Dependencies
 *  [node.js](https://nodejs.org/en)
+*  [npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm) 
 
-Copy or clone the repository. Navigate to the folder BGE_library_curation_tool and type npm start to start the program.
+Copy or clone the repository. Navigate to the folder BGE_library_curation_tool and type npm start to start the server.
 
 ```shell
 cd BGE_library_curation_tool
@@ -37,3 +38,7 @@ Once the data has been added to the folder and all dependencies are available, o
 cd BGE_Library_curation_tool
 start server.js
 ``` 
+The server runs locally and can be reached in the browser under [localhost:3000](localhost:3000) with the default settings.
+
+### First start
+When you start the server for the first time, a new database is created into which the data from data.xml is read. This takes a different amount of time depending on the size of the data set and the resources of the machine. This happens once and is not repeated when the machine is restarted. Do not switch off the machine while the data is being read in. 
