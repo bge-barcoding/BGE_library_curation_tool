@@ -48,6 +48,6 @@ Click on 'Apply Filter' to see the table and the statistics. Wait until the numb
 
 
 
-
+To filter the records in the table, first select the parameter you want to filter by in the checkbox field. Select the parameter from the drop-down menu 'Search type' and enter your search term. Click on 'Apply Filter' to update the table.
 
 ![filter_records.gif](public/ressources/filter_records.gif)
