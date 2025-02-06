@@ -46,3 +46,8 @@ When you start the server for the first time, a new database is created into whi
 Click on 'Apply Filter' to see the table and the statistics. Wait until the number of records no longer increases when you click on 'Apply Filter' again.
 ![first_start.gif](public/ressources/first_start.gif)
 
+
+
+
+
+![filter_records.gif](public/ressources/filter_records.gif)
