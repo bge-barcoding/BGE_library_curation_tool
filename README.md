@@ -42,3 +42,5 @@ The server runs locally and can be reached in the browser under [localhost:3000]
 
 ### First start
 When you start the server for the first time, a new database is created into which the data from data.xml is read. This takes a different amount of time depending on the size of the data set and the resources of the machine. This happens once and is not repeated when the machine is restarted. Do not switch off the machine while the data is being read in. 
+
+[first_start.gif](first_start.gif)
