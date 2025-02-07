@@ -3,7 +3,7 @@
 This BGE library curation tool is a standalone programm to be used by taxonomic experts to pick records (sequences) to be part of a european reference library for animal species in europe. The tool should only be used by taxonomic experts. The results will be used to create a European reference library as part of the EU project [Biodiversity Genomics Europe](https://biodiversitygenomics.eu/).
 
 ## Installation
-This tool 
+This repository contains the Linux-Version. For Windows, go to [BGE_library_curation_tool_win](https://github.com/FabianDeister/BGE_library_curation_tool_win)
 ### Dependencies
 *  [node.js](https://nodejs.org/en)
 *  [npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm) 
