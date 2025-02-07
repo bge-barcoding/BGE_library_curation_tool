@@ -44,10 +44,12 @@ The server runs locally and can be reached in the browser under [localhost:3000]
 When you start the server for the first time, a new database is created into which the data from data.xml is read. This takes a different amount of time depending on the size of the data set and the resources of the machine. This happens once and is not repeated when the machine is restarted. Do not switch off the machine while the data is being read in. 
 
 Click on 'Apply Filter' to see the table and the statistics. Wait until the number of records no longer increases when you click on 'Apply Filter' again.
-![first_start.gif](public/ressources/first_start.gif)
 
+<img src="public/ressources/first_start.gif" alt="filter" width="640" height="360">
 
 
 To filter the records in the table, first select the parameter you want to filter by in the checkbox field. Select the parameter from the drop-down menu 'Search type' and enter your search term. Click on 'Apply Filter' to update the table.
 
 ![filter_records.gif](public/ressources/filter_records.gif)
+
+<img src="public/ressources/filter_records.gif" alt="filter_records" width="640" height="360">
