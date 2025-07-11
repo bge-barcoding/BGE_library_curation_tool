@@ -1,53 +1,106 @@
 # BGE library curation tool
 
-This BGE library curation tool is a standalone programm to be used by taxonomic experts to pick records (sequences) to be part of a european reference library for animal species in europe. The tool should only be used by taxonomic experts. The results will be used to create a European reference library as part of the EU project [Biodiversity Genomics Europe](https://biodiversitygenomics.eu/).
+This BGE library curation tool is a standalone programm to be used by taxonomic experts to curate records from BOLD database pre-curated by this [bioinformatic pipeline](https://github.com/bge-barcoding/bold-library-curation) to be part of a european reference library for animal species in europe. The results will be used to create a European reference library as part of the EU project [Biodiversity Genomics Europe](https://biodiversitygenomics.eu/).
 
 ## Installation
-This repository contains the Linux-Version. For Windows, go to [BGE_library_curation_tool_win](https://github.com/FabianDeister/BGE_library_curation_tool_win)
+This repository contains the Linux- and Mac-Version. For Windows, please go to [BGE_library_curation_tool_win](https://bge-barcoding.github.io/manual-curation/)
+
+Please also download the corresponding database files for the families you wish to curate from this website!
+
+You will also find there a video tutorial and FAQs.
+
 ### Dependencies
 *  [node.js](https://nodejs.org/en)
 *  [npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm) 
 
-Copy or clone the repository. Navigate to the folder BGE_library_curation_tool and type npm start to start the server.
+# 🔧 Installation Guide (Linux & macOS)
 
-```shell
+Follow these steps to set up the tool on your system:
+
+---
+
+## 1. Copy or Clone the Repository 
+
+```bash
+git clone https://github.com/your-username/your-repo-name.git
+```
+and navigate to the folder: BGE_library_curation_tool
+
+```bash
 cd BGE_library_curation_tool
+```
+Start the tool, if npm is already installed. Otherwise, please continue with point 2.
+
+```bash
 npm start
 ```
 open any browser (firefox, Chrome etc) 
-go to localhost:3000
-When starting the programm for the first time, wait until all reads are loaded in into the database.
+go to [localhost:3000](http://localhost:3000)
+
+## 2. Remove Old Dependencies (if any)
+
+```bash
+rm -rf node_modules package-lock.json
+npm cache clean --force
+```
+
+## 3. Check Your System Architecture
+
+```bash
+uname -m                # Should return: arm64
+node -p "process.arch"  # Should return: arm64
+```
+
+If you see x64, you're using Rosetta. Install the native ARM version of Node with nvm:
+
+```bash
+nvm install node
+nvm use node
+```
+## 4. Install Dependencies
+
+```bash
+npm install
+```
+
+If you run into issues with sqlite3, install it from source:
+
+```bash
+npm install sqlite3 --build-from-source
+```
+
+## 5. Start the Tool
+
+```bash
+npm start
+```
+
+## Then open your browser at:
+
+```arduino
+http://localhost:3000
+```
+
+✅ Notes
+
+    This works for both Linux and macOS.
+
+    Requires Node.js (v18 or newer) and npm.
+
+    Use nvm to manage Node versions easily.    
  
 ## Usage
 
-To use the tool, a dataset is required that originates from the [library curation pipeline](https://github.com/FabianDeister/Library_curation_BOLD).  
-The data is provided to users in the form of an XML file (data.xml). This file must be stored in the folder in which the server.js file is also located.
+To use the tool, a dataset is required that originates from the [library curation pipeline](https://bge-barcoding.github.io/manual-curation/).  
+The data is provided to users in the form of a database file (data.db). Extract the folder you have downloaded and place the .db file within the sub-folder data/.
+
 ```bash
-.
-├── BGE_library_curation_tool
-├── data.xml
-├── logs
-├── node_modules
+BGE_library_curation_tool/
+├── data/       # Please place the .db files within this subfolder
+├── logs/       # Once you have finished your curation, please copy the changes.log file and sent it back to (curation_tool@snsb.de and kuehbandner@snsb.de)
+├── public/
 ├── package.json
-├── public
-└── server.js
+├── server.js
+└── user_manual_windows.html # user manaual for windows, but beside installation and starting everything should work the same way.
 ```
-Once the data has been added to the folder and all dependencies are available, open a Terminal, navigate to the folder BGE_library_curation_tool.
-
-```bash
-cd BGE_Library_curation_tool
-start server.js
-``` 
-The server runs locally and can be reached in the browser under [localhost:3000](localhost:3000) with the default settings.
-
-### First start
-When you start the server for the first time, a new database is created into which the data from data.xml is read. This takes a different amount of time depending on the size of the data set and the resources of the machine. This happens once and is not repeated when the machine is restarted. Do not switch off the machine while the data is being read in. 
-
-Click on 'Apply Filter' to see the table and the statistics. Wait until the number of records no longer increases when you click on 'Apply Filter' again.
-
-<img src="public/ressources/first_start.gif" alt="filter" width="640" height="360">
-
-
-To filter the records in the table, first select the parameter you want to filter by in the checkbox field. Select the parameter from the drop-down menu 'Search type' and enter your search term. Click on 'Apply Filter' to update the table.
-
-<img src="public/ressources/filter_records.gif" alt="filter_records" width="640" height="360">
+Refresh [http://localhost:3000](http://localhost:3000) in your browser and you should be able to select the taxa you wish to curate from the drowdown menue. Please continue with the user_manual_windows.html.
