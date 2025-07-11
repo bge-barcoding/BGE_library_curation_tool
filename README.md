@@ -5,9 +5,9 @@ This BGE library curation tool is a standalone programm to be used by taxonomic 
 ## Installation
 This repository contains the **Linux- and Mac-Version**. For Windows, please go to [BGE_library_curation_tool_win](https://bge-barcoding.github.io/manual-curation/)
 
-Please also download the corresponding database files for the families you wish to curate from this website!
+**Please also download the corresponding database files for the families you wish to curate from this website!**
 
-You will also find there a video tutorial and FAQs.
+You will also find there a **video tutorial and FAQs**.
 
 ### Dependencies
 *  [node.js](https://nodejs.org/en)
