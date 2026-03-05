@@ -1,5 +1,7 @@
 # BGE library curation tool
 
+[![DOI](https://zenodo.org/badge/990549788.svg)](https://doi.org/10.5281/zenodo.18877958)
+
 This BGE library curation tool is a standalone programm to be used by taxonomic experts to curate records from BOLD database pre-curated by this [bioinformatic pipeline](https://github.com/bge-barcoding/bold-library-curation) to be part of a european reference library for animal species in europe. The results will be used to create a European reference library as part of the EU project [Biodiversity Genomics Europe](https://biodiversitygenomics.eu/).
 
 ## Installation
