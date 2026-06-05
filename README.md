@@ -24,14 +24,18 @@ Follow these steps to set up the tool on your system:
 ## 1. Copy or Clone the Repository 
 
 ```bash
-git clone https://github.com/your-username/your-repo-name.git
+git clone https://github.com/bge-barcoding/BGE_library_curation_tool.git
 ```
-and navigate to the folder: BGE_library_curation_tool
+If Git prompts for authentication, please use a GitHub Personal Access Token (PAT) rather than your GitHub password, as password authentication is no longer supported by GitHub.
 
 ```bash
 cd BGE_library_curation_tool
 ```
-Start the tool, if npm is already installed. **Otherwise, please continue with point 2.**
+Start the tool, if npm is already installed. **Otherwise, please continue with Troubleshooting (point 2).**
+
+```bash
+npm install
+```
 
 ```bash
 npm start
@@ -39,6 +43,7 @@ npm start
 open any browser (firefox, Chrome etc) 
 go to [localhost:3000](http://localhost:3000)
 
+## Troubleshooting
 ## 2. Remove Old Dependencies (if any)
 
 ```bash
