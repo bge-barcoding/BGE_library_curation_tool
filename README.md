@@ -21,37 +21,38 @@ Follow these steps to set up the tool on your system:
 
 ---
 
-## 1. Copy or Clone the Repository 
+## Quick Installation
+Copy or Clone the Repository 
 
 ```bash
 git clone https://github.com/bge-barcoding/BGE_library_curation_tool.git
 ```
-If Git prompts for authentication, please use a GitHub Personal Access Token (PAT) rather than your GitHub password, as password authentication is no longer supported by GitHub.
-
+The repository is public and can normally be cloned without authentication. If Git requests authentication, use a GitHub Personal Access Token (PAT) rather than your GitHub password, as password authentication is no longer supported by GitHub.
+Change directory
 ```bash
 cd BGE_library_curation_tool
 ```
-Start the tool, if npm is already installed. **Otherwise, please continue with Troubleshooting (point 2).**
+Install dependencies
 
 ```bash
 npm install
 ```
-
+Start tool
 ```bash
 npm start
 ```
 open any browser (firefox, Chrome etc) 
 go to [localhost:3000](http://localhost:3000)
 
-## Troubleshooting
-## 2. Remove Old Dependencies (if any)
+# Troubleshooting
+## 1. Remove Old Dependencies (if any)
 
 ```bash
 rm -rf node_modules package-lock.json
 npm cache clean --force
 ```
 
-## 3. Check Your System Architecture
+## 2. Check Your System Architecture
 
 ```bash
 uname -m                # Should return: arm64
@@ -64,7 +65,7 @@ If you see x64, you're using Rosetta. Install the native ARM version of Node wit
 nvm install node
 nvm use node
 ```
-## 4. Install Dependencies
+## 3. Install Dependencies
 
 ```bash
 npm install
@@ -76,7 +77,7 @@ If you run into issues with sqlite3, install it from source:
 npm install sqlite3 --build-from-source
 ```
 
-## 5. Start the Tool
+## 4. Start the Tool
 
 ```bash
 npm start
