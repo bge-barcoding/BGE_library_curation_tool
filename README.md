@@ -4,6 +4,11 @@
 
 This BGE library curation tool is a standalone programm to be used by taxonomic experts to curate records from BOLD database pre-curated by this [bioinformatic pipeline](https://github.com/bge-barcoding/bold-library-curation) to be part of a european reference library for animal species in europe. The results will be used to create a European reference library as part of the EU project [Biodiversity Genomics Europe](https://biodiversitygenomics.eu/).
 
+## Information
+[Frequently Asked Questions (FAQ)](https://bge-barcoding.github.io/manual-curation/FAQs.html)
+
+[Video Tutorial](https://drive.google.com/file/d/1dqAG8v6Ee6YyUhVPq1vKBFe1XuwHe8jG/view)
+
 ## Installation
 This repository contains the **Linux- and Mac-Version**. For Windows, please go to [BGE_library_curation_tool_win](https://bge-barcoding.github.io/manual-curation/)
 
